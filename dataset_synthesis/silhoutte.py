@@ -29,7 +29,7 @@ from detectron2.data import MetadataCatalog, DatasetCatalog
 from detectron2.structures import Instances
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-wd', '--working_dir', help="specify the path to your input videos directory by <-wd your_directory>", default="/content/drive/MyDrive/raw")
+parser.add_argument('-wd', '--working_dir', help="specify the path to your input videos directory by <-wd your_directory>", default="/content/drive/MyDrive/input")
 parser.add_argument('-r', '--run_type', nargs="?", help="Type <-r run-all> to run the program for all files from the beginning")
 parser.add_argument('-c', '--config', help="specify the path to the config file in detectron2 format", default="COCO-InstanceSegmentation/mask_rcnn_X_101_32x8d_FPN_3x.yaml")
 parser.add_argument('-wts', '--weights', help="specify the path to the model weights", default="COCO-InstanceSegmentation/mask_rcnn_X_101_32x8d_FPN_3x.yaml")
@@ -45,7 +45,7 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 key_boxes = "pred_boxes"
 key_masks = "pred_masks"
 epsilon = torch.Tensor([10**-10])
-wts = [0.2,0.2,0.3,0.3]                                         #weights for centre, vertices, and area constraints
+wts = [0.2,0.2,0.3,0.3]                                         #weights for centre, vertices,masks and area constraints
 
 def normalize_tensor(cur,prev):
     mean = torch.mean(cur,dim=0,keepdim=True)
