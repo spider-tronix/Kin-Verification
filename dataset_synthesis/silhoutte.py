@@ -149,8 +149,14 @@ for f in glob.glob(os.path.join(folder_input,"*.mp4")):
             dic = instance_seg.get_fields()
             dic1["pred_boxes"] = dic.get("pred_boxes")
             dic1["pred_masks"] = dic.get("pred_masks")
+            
             for key in dic:
-                if key != "pred_boxes":
+                if key == "pred_masks":
+                    dic[key] = dic[key].squeeze()
+                    dic[key] = dic[key].nonzero()
+                    dic[key] = torch.Tensor.tolist(dic[key])
+                    
+                elif key != "pred_boxes":
                     dic[key] = dic[key].tolist()
                 else:
                     for element in dic[key]:
