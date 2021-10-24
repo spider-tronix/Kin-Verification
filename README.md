@@ -8,4 +8,7 @@ Kin verification is the task of determining whether two individuals are genetica
 # Dataset
 - [Dataset](https://drive.google.com/drive/folders/1LbI-SzYGmDEo4qw0SdjMjBmpKJm-fHXR?usp=sharing)
 - [Colab](https://colab.research.google.com/drive/1xuXepHBTx1ieFQyopwyq3Dv42FsDjg41?usp=sharing)
+---
+# Progress
+[Slides](https://docs.google.com/presentation/d/1LsYYwrZFDHpkL1jedepb29bqbxx3vVSiVuYtsKHCPKY/edit?usp=sharing)
  
