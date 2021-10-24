@@ -7,7 +7,7 @@ import os
 import glob
 
 
-def load_image(data_dir,frame):
+def load_image(data_dir,frame,image_size):
     list_frames=sorted(os.listdir(data_dir))
     img=[]
     for i in range(0,16):
@@ -15,9 +15,9 @@ def load_image(data_dir,frame):
             path=os.path.join(data_dir,list_frames[i+frame])
             inImage=Image.open(path)
             #print(inImage.size) 
-            inImage=inImage.resize((50,150))
+            inImage=inImage.resize(image_size)
         except:
-            inImage=np.zeros(shape=(150,50))
+            inImage=np.zeros(shape=(image_size[1],image_size[0]))
         inImage = np.array(inImage,dtype=np.float64)/255 
         #print(inImage.min(),type(inImage))
         iw = inImage.shape[1]
@@ -32,7 +32,7 @@ def load_image(data_dir,frame):
 
 
 class CASIA_train(Dataset):
-    def __init__(self,root_dir,train=True):
+    def __init__(self,root_dir,train=True,image_size=(50,150)):
         self.root_dir=root_dir
         if train:
             self.cond=["nm-01","nm-02","nm-03","nm-04"]
@@ -40,6 +40,7 @@ class CASIA_train(Dataset):
         self.angles=["000","018","036","054","072","090","108","126","144","162","180"]
         self.n_cond = len(self.cond)
         self.n_ang = len(self.angles)
+        self.image_size=image_size
     
     def __getitem__(self,idx):
         while(True):           
@@ -58,7 +59,7 @@ class CASIA_train(Dataset):
             if n_frames < 10:
                 continue
             frame=torch.randint(0,n_frames-16,(1,)).item()
-            img=load_image(data_dir,frame)                     
+            img=load_image(data_dir,frame,self.image_size)                     
             break
         
         return img,label,data_dir
@@ -68,7 +69,7 @@ class CASIA_train(Dataset):
         return 448151
 
 class CASIA_test(Dataset):
-    def __init__(self,root_dir):
+    def __init__(self,root_dir,image_size=(50,150)):
         self.root_dir=root_dir
         if train:
             self.cond=["nm-05","nm-06"]
@@ -76,6 +77,7 @@ class CASIA_test(Dataset):
         self.angles=["000","018","036","054","072","090","108","126","144","162","180"]
         self.n_cond = len(self.cond)
         self.n_ang = len(self.angles)
+        self.image_size=image_size
     
     def __getitem__(self,idx):
         while(True):           
@@ -94,7 +96,7 @@ class CASIA_test(Dataset):
             if n_frames < 10:
                 continue
             frame=torch.randint(0,n_frames-16,(1,)).item()
-            img=load_image(data_dir,frame)                     
+            img=load_image(data_dir,frame,self.image_size)                     
             break
         
         return img,label,data_dir
