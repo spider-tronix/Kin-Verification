@@ -2,6 +2,11 @@ import numpy as np
 
 from functools import lru_cache
 from scipy.stats import multivariate_normal
+import cv2
+import glob
+import os
+from matplotlib import pyplot as plt
+import pandas as pd
 
 
 @lru_cache()
@@ -77,3 +82,33 @@ def get_gauss_heat_map(shape, is_present, mean, sigma = 5):
                 #     print(my, mx)
 
     return pl[:, dn:-dn, dn:-dn, :]
+
+
+def videotoframe(video_path,save_path):
+    videos=sorted(glob.glob(os.path.join(video_path,"*.mp4")))
+    if not os.path.exists(save_path):
+        os.mkdir(save_path)
+    for video in videos:
+        id=video.split("/")[-1].split(".")[0]
+        print(id)
+        save_dir=os.path.join(save_path,str(id))
+        if not os.path.exists(save_dir):
+            os.mkdir(save_dir)
+        print(video)
+        capture=cv2.VideoCapture(video)
+        frame_cnt=0
+        while True:
+            success, frame = capture.read()
+ 
+            if success:
+                cv2.imwrite(os.path.join(save_dir,str(frame_cnt)+".jpg"),frame)
+                print("Frame saved")
+            else:
+                break
+ 
+            frame_cnt = frame_cnt+1
+ 
+        capture.release()        
+
+#videotoframe("/mnt/sda2/Spider/KinGaitWild-20210913T171340Z-001/KinGaitWild/cropped_videos","/mnt/sda2/Spider/Kingait/")
+
