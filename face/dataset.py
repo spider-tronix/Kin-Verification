@@ -4,7 +4,9 @@ from torch.utils.data import Dataset
 from skimage import io
 import scipy.io as sio
 import pandas as pd
-import re
+import os
+import PIL.Image
+import numpy as np
 
 class FIW(Dataset):
     '''
@@ -14,7 +16,7 @@ class FIW(Dataset):
     val_list        - list of strings of family ids to be included in val and not included in train
     transform       - transforms to be done on the images
     '''
-    def __init__(self, work_dir, label, split, val_list, transform=None):
+    def __init__(self, work_dir, label, split, transform=None, val_list=None):
         self.work_dir = work_dir
         self.label = os.path.join(self.work_dir, label)
         self.split = split
@@ -23,47 +25,49 @@ class FIW(Dataset):
         
         if self.split == "test":
             if os.path.isfile(self.label):                                  # if only single relation is considered for test label
-                self.df = pd.read_csv(self.label, low_memory=False)
+                self.df = pd.read_csv(self.label, low_memory=False, encoding = "utf-8")
             else:
                 self.df = pd.Dataframe()                                    # if all the relations are considered for test label
                 for f in os.listdir(self.label):
-                    self.df.append(pd.read_csv(os.path.join(self.label, f), low_memory=False))
+                    self.df = pd.append(self.df, pd.read_csv(os.path.join(self.label, f), low_memory=False, encoding = "utf-8"))
 
         else:
-            self.df = pd.read_csv(self.label, low_memory=False)
+            self.df = pd.read_csv(self.label, low_memory=False, encoding = "utf-8")
             # eliminate the val_list from train
             if split == "val":
-                self.df = self.df[(self.df["person1"].split("/")[1] in self.val_list) or (self.df["person2"].split("/")[1] in self.val_list)]
+                self.df = self.df[(self.df["person1"].str.split("/", expand=True)[1].isin(self.val_list)) | (self.df["person2"].str.split("/", expand=True)[1].isin(self.val_list))]
+                self.df = self.df.reset_index(drop=True)
             else:
-                self.df = self.df[(self.df["person1"].split("/")[1] not in self.val_list) or (self.df["person2"].split("/")[1] not in self.val_list)]
-
+                self.df = self.df[(~self.df["person1"].str.split("/", expand=True)[1].isin(self.val_list)) | (~self.df["person2"].str.split("/", expand=True)[1].isin(self.val_list))]
+                self.df = self.df.reset_index(drop=True)                
 
     def __len__(self):
-        return self.df.count()
+        return len(self.df)
 
     def __getitem__(self, index):
         if self.split == "test":
-            img_path_1 = os.path.join(self.work_dir, "test-private-faces", str(self.df["person1"].iloc(index)))         
-            img_path_2 = os.path.join(self.work_dir, "test-private-faces", str(self.df["person2"].iloc(index)))
+            img_path_1 = os.path.join(self.work_dir, "test-private-faces", str(self.df.at[index, "p1"]))         
+            img_path_2 = os.path.join(self.work_dir, "test-private-faces", str(self.df.at[index, "p2"]))
+            y = torch.Tensor([self.df.at[index, "label"].astype("uint8")])
         
         else:
-            img_path_1 = os.path.join(self.work_dir, str(self.df["person1"].iloc(index)))
-            img_path_2 = os.path.join(self.work_dir, str(self.df["person2"].iloc(index)))
+            img_path_1 = os.path.join(self.work_dir, str(self.df.at[index, "person1"]))
+            img_path_2 = os.path.join(self.work_dir, str(self.df.at[index, "person2"]))
             # also include age and gender information in the dataset 
-            age_1 = int(self.df["p1_age"].iloc(index))
-            age_2 = int(self.df["p2_age"].iloc(index))
-            gender_1 = int(self.df["p1_gender"].iloc(index))
-            gender_2 = int(self.df["p2_gender"].iloc(index))
+            age_1 = int(self.df.at[index, "p1_age"])
+            age_2 = int(self.df.at[index, "p2_age"])
+            gender_1 = int(self.df.at[index, "p1_gender"])
+            gender_2 = int(self.df.at[index, "p2_gender"])
+            y = torch.Tensor([self.df.at[index, "is_related"].astype("uint8")])
 
         k1 = io.imread(img_path_1)
         k2 = io.imread(img_path_2)
-        y = torch.Tensor(self.df["is_related"].iloc(index))
         
         if self.transform:
             k1 = self.transform(k1)
             k2 = self.transform(k2)
 
-        return ((k1,k2,age_1,age_2,gender_1,gender_2), y)
+        return k1,k2,age_1,age_2,gender_1,gender_2,y
         
 
 class KinFaceW1(Dataset):
@@ -117,6 +121,7 @@ class KinFaceW1(Dataset):
             k1 = self.transforms(k1)
             k2 = self.transforms(k2)
         
-        return ((k1,k2,relation), label)
+        return k1,k2,relation,label
+
 
         
