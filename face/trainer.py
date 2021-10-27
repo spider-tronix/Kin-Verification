@@ -12,6 +12,7 @@ from torch.autograd import Variable
 import utils
 import tqdm
 
+batch_size = 32
 class Trainer(object):
 
     def __init__(self, dataset, cmd, cuda, model, criterion, optimizer,
@@ -53,8 +54,7 @@ class Trainer(object):
         self.iteration = 0
 
         self.max_iter = max_iter
-        self.best_top1 = 0
-        self.best_top5 = 0
+        self.best_top = 0
         self.print_freq = print_freq
 
         self.checkpoint_dir = checkpoint_dir
@@ -69,8 +69,7 @@ class Trainer(object):
     def validate(self):
         batch_time = utils.AverageMeter()
         losses = utils.AverageMeter()
-        top1 = utils.AverageMeter()
-        top5 = utils.AverageMeter()
+        top = utils.AverageMeter()
 
         training = self.model.training
         self.model.eval()
@@ -92,26 +91,30 @@ class Trainer(object):
                 
                 loss = self.criterion(output, target)
 
-                if np.isnan(float(loss.data[0])):
+                if np.isnan(float(loss.data)):
                     raise ValueError('loss is nan while validating')
 
                 # measure accuracy and record loss
-                prec1, prec5 = utils.accuracy(output.data, target.data, topk=(1, 5))
-                losses.update(loss.data[0], imgs1.size(0))
-                top1.update(prec1[0], imgs1.size(0))
-                top5.update(prec5[0], imgs1.size(0))
+                prec = utils.accuracy(output.data, target.data)
+                losses.update(loss.data, imgs1.size(0))
+                top.update(prec[0], imgs1.size(0))
 
                 # measure elapsed time
                 batch_time.update(time.time() - end)
                 end = time.time()
                 if batch_idx % self.print_freq == 0:
-                    log_str = 'Test: [{0}/{1}/{top1.count:}]\tepoch: {epoch:}\titer: {iteration:}\t' \
+                    # log_str = 'Test: [{0}/{1}/{top.count:}]\tepoch: {epoch:}\titer: {iteration:}\t' \
+                    #     'Time: {batch_time.val:.3f} ({batch_time.avg:.3f})\t' \
+                    #     'Loss: {loss.val:.4f} ({loss.avg:.4f})\t' \
+                    #     'Prec@1: {top.val:.3f} ({top.avg:.3f})\t'.format(
+                    #     batch_idx, len(self.val_loader), epoch=self.epoch, iteration=self.iteration,
+                    #     batch_time=batch_time, loss=losses, top=top)
+                    log_str = 'Test: [{0}/{1}/{top.count:}]\nepoch: {epoch:}\titer: {iteration:}\t' \
                         'Time: {batch_time.val:.3f} ({batch_time.avg:.3f})\t' \
-                        'Loss: {loss.val:.4f} ({loss.avg:.4f})\t' \
-                        'Prec@1: {top1.val:.3f} ({top1.avg:.3f})\t' \
-                        'Prec@5: {top5.val:.3f} ({top5.avg:.3f})\t'.format(
+                        'Loss: {loss.val:} ({loss.avg:})\t' \
+                        'Prec@1: {top.val:} ({top.avg:})\t'.format(
                         batch_idx, len(self.val_loader), epoch=self.epoch, iteration=self.iteration,
-                        batch_time=batch_time, loss=losses, top1=top1, top5=top5)
+                        batch_time=batch_time, loss=losses, top=top)
                     print(log_str)
                     self.print_log(log_str)
 
@@ -134,38 +137,46 @@ class Trainer(object):
                     raise ValueError('loss is nan while validating')
 
                 # measure accuracy and record loss
-                prec1, prec5 = utils.accuracy(output.data, target.data, topk=(1, 5))
-                losses.update(loss.data[0], imgs1.size(0))
-                top1.update(prec1[0], imgs1.size(0))
-                top5.update(prec5[0], imgs1.size(0))
+                prec = utils.accuracy(output.data, target.data)
+                losses.update(loss.data, imgs1.size(0))
+                top.update(prec[0], imgs1.size(0))
 
                 # measure elapsed time
                 batch_time.update(time.time() - end)
                 end = time.time()
                 if batch_idx % self.print_freq == 0:
-                    log_str = 'Test: [{0}/{1}/{top1.count:}]\tepoch: {epoch:}\titer: {iteration:}\t' \
+                    # log_str = 'Test: [{0}/{1}/{top.count:}]\tepoch: {epoch:}\titer: {iteration:}\t' \
+                    #     'Time: {batch_time.val:.3f} ({batch_time.avg:.3f})\t' \
+                    #     'Loss: {loss.val:.4f} ({loss.avg:.4f})\t' \
+                    #     'Prec@1: {top.val:.3f} ({top.avg:.3f})\t'.format(
+                    #     batch_idx, len(self.val_loader), epoch=self.epoch, iteration=self.iteration,
+                    #     batch_time=batch_time, loss=losses, top=top)
+                    log_str = 'Test: [{0}/{1}/{top.count:}]\nepoch: {epoch:}\titer: {iteration:}\t' \
                         'Time: {batch_time.val:.3f} ({batch_time.avg:.3f})\t' \
-                        'Loss: {loss.val:.4f} ({loss.avg:.4f})\t' \
-                        'Prec@1: {top1.val:.3f} ({top1.avg:.3f})\t' \
-                        'Prec@5: {top5.val:.3f} ({top5.avg:.3f})\t'.format(
+                        'Loss: {loss.val:} ({loss.avg:})\t' \
+                        'Prec@1: {top.val:} ({top.avg:})\t'.format(
                         batch_idx, len(self.val_loader), epoch=self.epoch, iteration=self.iteration,
-                        batch_time=batch_time, loss=losses, top1=top1, top5=top5)
+                        batch_time=batch_time, loss=losses, top=top)
                     print(log_str)
                     self.print_log(log_str)
 
 
         if self.cmd == 'train':
-            is_best = top1.avg > self.best_top1
-            self.best_top1 = max(top1.avg, self.best_top1)
-            self.best_top5 = max(top5.avg, self.best_top5)
+            is_best = top.avg > self.best_top
+            self.best_top = max(top.avg, self.best_top)
 
-            log_str = 'Test_summary: [{0}/{1}/{top1.count:}] epoch: {epoch:} iter: {iteration:}\t' \
-                  'BestPrec@1: {best_top1:.3f}\tBestPrec@5: {best_top5:.3f}\t' \
-                  'Time: {batch_time.avg:.3f}\tLoss: {loss.avg:.4f}\t' \
-                  'Prec@1: {top1.avg:.3f}\tPrec@5: {top5.avg:.3f}\t'.format(
+            # log_str = 'Test_summary: [{0}/{1}/{top.count:}] epoch: {epoch:} iter: {iteration:}\t' \
+            #       'BestPrec@1: {best_top:.3f}\t' \
+            #       'Time: {batch_time.avg:.3f}\tLoss: {loss.avg:.4f}\t' \
+            #       'Prec@1: {top.avg:.3f}\t'.format(
+            #     batch_idx, len(self.val_loader), epoch=self.epoch, iteration=self.iteration,
+            #     best_top=self.best_top, batch_time=batch_time, loss=losses, top=top)
+            log_str = 'Test_summary: [{0}/{1}/{top.count:}]\nepoch: {epoch:} iter: {iteration:}\t' \
+                  'BestPrec@1: {best_top:.3f}\t' \
+                  'Time: {batch_time.avg:.3f}\tLoss: {loss.avg:}\t' \
+                  'Prec@1: {top.avg:}\t'.format(
                 batch_idx, len(self.val_loader), epoch=self.epoch, iteration=self.iteration,
-                best_top1=self.best_top1, best_top5=self.best_top5,
-                batch_time=batch_time, loss=losses, top1=top1, top5=top5)
+                best_top=self.best_top, batch_time=batch_time, loss=losses, top=top)
             print(log_str)
             self.print_log(log_str)
 
@@ -176,11 +187,10 @@ class Trainer(object):
                 'arch': self.model.__class__.__name__,
                 'optim_state_dict': self.optim.state_dict(),
                 'model_state_dict': self.model.state_dict(),
-                'best_top1': self.best_top1,
+                'best_top': self.best_top,
                 'batch_time': batch_time,
                 'losses': losses,
-                'top1': top1,
-                'top5': top5,
+                'top': top,
             }, checkpoint_file)
             if is_best:
                 shutil.copy(checkpoint_file, os.path.join(self.checkpoint_dir, 'model_best.pth.tar'))
@@ -194,8 +204,7 @@ class Trainer(object):
         batch_time = utils.AverageMeter()
         data_time = utils.AverageMeter()
         losses = utils.AverageMeter()
-        top1 = utils.AverageMeter()
-        top5 = utils.AverageMeter()
+        top = utils.AverageMeter()
 
         self.model.train()
         self.optim.zero_grad()
@@ -226,10 +235,9 @@ class Trainer(object):
                     raise ValueError('loss is nan while training')
 
                 # measure accuracy and record loss
-                prec1, prec5 = utils.accuracy(output.data, target.data, topk=(1, 5))
-                losses.update(loss.data[0], imgs.size(0))
-                top1.update(prec1[0], imgs.size(0))
-                top5.update(prec5[0], imgs.size(0))
+                prec = utils.accuracy(output.data, target.data)
+                losses.update(loss.data, imgs1.size(0))
+                top.update(prec[0], imgs1.size(0))
 
                 self.optim.zero_grad()
                 loss.backward()
@@ -239,15 +247,24 @@ class Trainer(object):
                 batch_time.update(time.time() - end)
                 end = time.time()
                 if self.iteration % self.print_freq == 0:
-                    log_str = 'Train: [{0}/{1}/{top1.count:}]\tepoch: {epoch:}\titer: {iteration:}\t' \
+                    #print(type(top.count), type(batch_time.val),type(data_time.val),type(losses.val),type(top.val))
+                    # log_str = 'Train: [{0}/{1}/{top.count:}]\tepoch: {epoch:}\titer: {iteration:}\t' \
+                    #     'Time: {batch_time.val:.3f} ({batch_time.avg:.3f})\t' \
+                    #     'Data: {data_time.val:.3f} ({data_time.avg:.3f})\t' \
+                    #     'Loss: {loss.val:.4f} ({loss.avg:.4f})\t' \
+                    #     'Prec@1: {top.val:.3f} ({top.avg:.3f})\t'.format(
+                    #     batch_idx, len(self.train_loader), epoch=self.epoch, iteration=self.iteration,
+                    #     lr=self.optim.param_groups[0]['lr'],
+                    #     batch_time=batch_time, data_time=data_time, loss=losses, top=top)
+
+                    log_str = 'Train: [{0}/{1}/{top.count:}]\nepoch: {epoch:}\titer: {iteration:}\t' \
                         'Time: {batch_time.val:.3f} ({batch_time.avg:.3f})\t' \
                         'Data: {data_time.val:.3f} ({data_time.avg:.3f})\t' \
-                        'Loss: {loss.val:.4f} ({loss.avg:.4f})\t' \
-                        'Prec@1: {top1.val:.3f} ({top1.avg:.3f})\t' \
-                        'Prec@5: {top5.val:.3f} ({top5.avg:.3f})\tlr {lr:.6f}'.format(
+                        'Loss: {loss.val:} ({loss.avg:})\t' \
+                        'Prec@1: {top.val:} ({top.avg:})\t'.format(
                         batch_idx, len(self.train_loader), epoch=self.epoch, iteration=self.iteration,
                         lr=self.optim.param_groups[0]['lr'],
-                        batch_time=batch_time, data_time=data_time, loss=losses, top1=top1, top5=top5)
+                        batch_time=batch_time, data_time=data_time, loss=losses, top=top)
                     print(log_str)
                     self.print_log(log_str)
 
@@ -280,10 +297,9 @@ class Trainer(object):
                     raise ValueError('loss is nan while training')
 
                 # measure accuracy and record loss
-                prec1, prec5 = utils.accuracy(output.data, target.data, topk=(1, 5))
-                losses.update(loss.data[0], imgs.size(0))
-                top1.update(prec1[0], imgs.size(0))
-                top5.update(prec5[0], imgs.size(0))
+                prec = utils.accuracy(output.data, target.data)
+                losses.update(loss.data, imgs1.size(0))
+                top.update(prec[0], imgs2.size(0))
 
                 self.optim.zero_grad()
                 loss.backward()
@@ -293,33 +309,47 @@ class Trainer(object):
                 batch_time.update(time.time() - end)
                 end = time.time()
                 if self.iteration % self.print_freq == 0:
-                    log_str = 'Train: [{0}/{1}/{top1.count:}]\tepoch: {epoch:}\titer: {iteration:}\t' \
+                    # log_str = 'Train: [{0}/{1}/{top.count:}]\tepoch: {epoch:}\titer: {iteration:}\t' \
+                    #     'Time: {batch_time.val:.3f} ({batch_time.avg:.3f})\t' \
+                    #     'Data: {data_time.val:.3f} ({data_time.avg:.3f})\t' \
+                    #     'Loss: {loss.val:.4f} ({loss.avg:.4f})\t' \
+                    #     'Prec@1: {top.val:.3f} ({top.avg:.3f})\t'.format(
+                    #     batch_idx, len(self.train_loader), epoch=self.epoch, iteration=self.iteration,
+                    #     lr=self.optim.param_groups[0]['lr'],
+                    #     batch_time=batch_time, data_time=data_time, loss=losses, top=top)
+                    log_str = 'Train: [{0}/{1}/{top.count:}]\nepoch: {epoch:}\titer: {iteration:}\t' \
                         'Time: {batch_time.val:.3f} ({batch_time.avg:.3f})\t' \
                         'Data: {data_time.val:.3f} ({data_time.avg:.3f})\t' \
-                        'Loss: {loss.val:.4f} ({loss.avg:.4f})\t' \
-                        'Prec@1: {top1.val:.3f} ({top1.avg:.3f})\t' \
-                        'Prec@5: {top5.val:.3f} ({top5.avg:.3f})\tlr {lr:.6f}'.format(
+                        'Loss: {loss.val:} ({loss.avg:})\t' \
+                        'Prec@1: {top.val:} ({top.avg:})\t'.format(
                         batch_idx, len(self.train_loader), epoch=self.epoch, iteration=self.iteration,
                         lr=self.optim.param_groups[0]['lr'],
-                        batch_time=batch_time, data_time=data_time, loss=losses, top1=top1, top5=top5)
+                        batch_time=batch_time, data_time=data_time, loss=losses, top=top)
                     print(log_str)
                     self.print_log(log_str)
 
                 if self.lr_scheduler is not None:
                     self.lr_scheduler.step()  # update lr
 
-        log_str = 'Train_summary: [{0}/{1}/{top1.count:}]\tepoch: {epoch:}\titer: {iteration:}\t' \
+        # log_str = 'Train_summary: [{0}/{1}/{top.count:}]\nepoch: {epoch:}\titer: {iteration:}\t' \
+        #               'Time: {batch_time.avg:.3f}\tData: {data_time.avg:.3f}\t' \
+        #               'Loss: {loss.avg:.4f}\tPrec@1: {top.avg:.3f}\t'.format(
+        #             batch_idx, len(self.train_loader), epoch=self.epoch, iteration=self.iteration,
+        #             lr=self.optim.param_groups[0]['lr'],
+        #             batch_time=batch_time, data_time=data_time, loss=losses, top=top)
+        log_str = 'Train_summary: [{0}/{1}/{top.count:}]\nepoch: {epoch:}\titer: {iteration:}\t' \
                       'Time: {batch_time.avg:.3f}\tData: {data_time.avg:.3f}\t' \
-                      'Loss: {loss.avg:.4f}\tPrec@1: {top1.avg:.3f}\tPrec@5: {top5.avg:.3f}\tlr {lr:.6f}'.format(
+                      'Loss: {loss.avg:}\tPrec@1: {top.avg:}\t'.format(
                     batch_idx, len(self.train_loader), epoch=self.epoch, iteration=self.iteration,
                     lr=self.optim.param_groups[0]['lr'],
-                    batch_time=batch_time, data_time=data_time, loss=losses, top1=top1, top5=top5)
+                    batch_time=batch_time, data_time=data_time, loss=losses, top=top)
         print(log_str)
         self.print_log(log_str)
 
 
     def train(self):
-        max_epoch = int(math.ceil(1. * self.max_iter / len(self.train_loader))) # 117
+        #max_epoch = int(math.ceil(1. * self.max_iter / len(self.train_loader))) # 117
+        max_epoch = 100
         for epoch in tqdm.trange(self.epoch, max_epoch, desc='Train', ncols=80):
             self.epoch = epoch
             self.train_epoch()

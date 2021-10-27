@@ -29,12 +29,12 @@ N_IDENTITY = 8631
 # hyperparameter setting
 configurations = {
     1: dict(
-        max_iteration=1000000,
+        max_iteration=62500,
         lr=1.0e-1,
         momentum=0.9,
         weight_decay=0.0,
         gamma=0.1, # "lr_policy: step"
-        step_size=1000000, # "lr_policy: step"
+        step_size=20, # "lr_policy: step"
         interval_validate=1000,
     ),
 }
@@ -54,7 +54,7 @@ parser.add_argument('-bs', '--batch_size', type=int, default=32, help='batch siz
 parser.add_argument('-testfn', '--testfilename', default="test_labels.csv", help="specify the label filename for test")
 parser.add_argument('-trainfn', '--trainfilename', default="train_labels.csv", help="specify the label filename for train")
 parser.add_argument('-w', '--workers', default=4, type=int, metavar='N',help='number of data loading workers (default: 4)')
-parser.add_argument('--arch_type', type=str, default='resnet50_scratch', help='model type',choices=['resnet50_scratch', 'senet50_scratch', 'resnet50', 'vgg16', 'densenet121'])
+parser.add_argument('--arch_type', type=str, default='resnet50_scratch', help='model type',choices=['resnet50_scratch', 'senet50_scratch', 'resnet50', 'vgg16', 'densenet161'])
 parser.add_argument('-logfn', '--log_file', type=str, default='logger.log', help='log file')
 
 args = parser.parse_args()
