@@ -11,14 +11,15 @@ from torch.autograd import Variable
 
 import utils
 import tqdm
+from torch.utils.tensorboard import SummaryWriter
 
-batch_size = 32
 class Trainer(object):
 
-    def __init__(self, dataset, cmd, cuda, model, criterion, optimizer,
-                 train_loader, val_loader, log_file, max_iter,
+    def __init__(self, dataset, dataset_type, cmd, cuda, model, criterion, optimizer,
+                 train_loader, val_loader, test_loader, log_file, max_iter,
+                 checkpoint_dir, checkpoint_file, tb_dir,
                  interval_validate=None, lr_scheduler=None,
-                 checkpoint_dir=None, print_freq=1):
+                 print_freq=1):
         """
         :param cuda:
         :param model:
@@ -29,6 +30,8 @@ class Trainer(object):
         :param max_iter:
         :param interval_validate:
         :param checkpoint_dir:
+        :param checkpoint_file:
+        :param tb_dir:  tensorboard directory
         :param lr_scheduler:
         """
 
@@ -43,7 +46,9 @@ class Trainer(object):
 
         self.train_loader = train_loader
         self.val_loader = val_loader
+        self.test_loader = test_loader
         self.dataset = dataset
+        self.dataset_type = dataset_type
 
         self.timestamp_start = datetime.datetime.now()
 
@@ -58,7 +63,10 @@ class Trainer(object):
         self.print_freq = print_freq
 
         self.checkpoint_dir = checkpoint_dir
+        self.checkpoint_file = checkpoint_file
         self.log_file = log_file
+        self.tb_dir = tb_dir
+        self.step=0
 
 
     def print_log(self, log_str):
@@ -82,14 +90,15 @@ class Trainer(object):
         
 
                 gc.collect()
+                target = target.view(-1).long()
                 if self.cuda:
                     imgs1, imgs2, target = imgs1.cuda(), imgs2.cuda(), target.cuda(non_blocking=True)          # we have two images
-                imgs1 = Variable(imgs1, volatile=True)
-                imgs2 = Variable(imgs2, volatile=True)
-                target = Variable(target, volatile=True)
-                output = self.model(imgs1, imgs2)
-                
-                loss = self.criterion(output, target)
+                imgs1 = Variable(imgs1)
+                imgs2 = Variable(imgs2)
+                target = Variable(target)
+                with torch.no_grad():
+                    output = self.model(imgs1, imgs2)
+                    loss = self.criterion(output, target)
 
                 if np.isnan(float(loss.data)):
                     raise ValueError('loss is nan while validating')
@@ -180,13 +189,20 @@ class Trainer(object):
             print(log_str)
             self.print_log(log_str)
 
-            checkpoint_file = os.path.join(self.checkpoint_dir, 'checkpoint.pth.tar')
+            if self.dataset_type == "scratch":
+                model_state = self.model.state_dict()
+            elif self.dataset_type == "vggface2":
+                model_state = self.model.fc.state_dict()
+            else:
+                model_state = self.model.fnet.state_dict()
+
+            checkpoint_file = os.path.join(self.checkpoint_dir, self.checkpoint_file)
             torch.save({
                 'epoch': self.epoch,
                 'iteration': self.iteration,
                 'arch': self.model.__class__.__name__,
                 'optim_state_dict': self.optim.state_dict(),
-                'model_state_dict': self.model.state_dict(),
+                'model_state_dict': model_state,
                 'best_top': self.best_top,
                 'batch_time': batch_time,
                 'losses': losses,
@@ -222,7 +238,7 @@ class Trainer(object):
                     continue  # for resuming
                 self.iteration = iteration
 
-                if (self.iteration + 1) % self.interval_validate == 0:
+                if (self.iteration + 1) % self.interval_validate == 0:    
                     self.validate()
 
                 if self.cuda:
@@ -299,7 +315,7 @@ class Trainer(object):
                 # measure accuracy and record loss
                 prec = utils.accuracy(output.data, target.data)
                 losses.update(loss.data, imgs1.size(0))
-                top.update(prec[0], imgs2.size(0))
+                top.update(prec[0], imgs1.size(0))
 
                 self.optim.zero_grad()
                 loss.backward()
@@ -345,16 +361,44 @@ class Trainer(object):
                     batch_time=batch_time, data_time=data_time, loss=losses, top=top)
         print(log_str)
         self.print_log(log_str)
+        writer.add_scalar("training loss", loss.avg, global_step=self.step)
+        writer.add_scalar("training accuracy", top.avg, global_step=self.step)
+        self.step = self.step + 1
 
+    def test(self):
+        print("testing...")
+        num_correct = 0
+        num_samples = 0
+        self.model.eval()
+        with torch.no_grad():
+            for batch_idx, (imgs1, imgs2,target) in enumerate(self.test_loader):
+                target = target.view(-1).long()
+                if self.cuda:
+                    imgs1 = imgs1.cuda()
+                    imgs2 = imgs2.cuda()
+                    target = target.cuda()
+
+                scores = self.model(imgs1, imgs2)
+                _, predictions = scores.max(1)
+                num_correct += (predictions == target).sum()
+                num_samples += predictions.size(0)
+
+        s = f"\nnum_correct: {num_correct}\tnum_samples: {num_samples}\tTesting accuracy: {float(num_correct)/float(num_samples)*100:.2f}"
+        print(s)
+        self.print_log(s)
 
     def train(self):
         #max_epoch = int(math.ceil(1. * self.max_iter / len(self.train_loader))) # 117
         max_epoch = 100
+        self.validate()
+        writer = SummaryWriter(self.tb_dir)
         for epoch in tqdm.trange(self.epoch, max_epoch, desc='Train', ncols=80):
             self.epoch = epoch
             self.train_epoch()
             if self.iteration >= self.max_iter:
                 break
+        self.test()
+
 
 
 

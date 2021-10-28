@@ -27,7 +27,7 @@ class FIW(Dataset):
             if os.path.isfile(self.label):                                  # if only single relation is considered for test label
                 self.df = pd.read_csv(self.label, low_memory=False, encoding = "utf-8")
             else:
-                self.df = pd.Dataframe()                                    # if all the relations are considered for test label
+                self.df = pd.DataFrame()                                    # if all the relations are considered for test label
                 for f in os.listdir(self.label):
                     self.df = pd.append(self.df, pd.read_csv(os.path.join(self.label, f), low_memory=False, encoding = "utf-8"))
 
@@ -46,18 +46,21 @@ class FIW(Dataset):
 
     def __getitem__(self, index):
         if self.split == "test":
-            img_path_1 = os.path.join(self.work_dir, "test-private-faces", str(self.df.at[index, "p1"]))         
+            img_path_1 = os.path.join(self.work_dir, "test-private-faces", str(self.df.at[index, "p1"]))
+            print(image_path_1)         
             img_path_2 = os.path.join(self.work_dir, "test-private-faces", str(self.df.at[index, "p2"]))
+            print(image_path_2)
+            print("\n")
             y = torch.Tensor([self.df.at[index, "label"].astype("uint8")])
         
         else:
             img_path_1 = os.path.join(self.work_dir, str(self.df.at[index, "person1"]))
             img_path_2 = os.path.join(self.work_dir, str(self.df.at[index, "person2"]))
             # also include age and gender information in the dataset 
-            age_1 = int(self.df.at[index, "p1_age"])
-            age_2 = int(self.df.at[index, "p2_age"])
-            gender_1 = int(self.df.at[index, "p1_gender"])
-            gender_2 = int(self.df.at[index, "p2_gender"])
+            age_1 = torch.Tensor([int(self.df.at[index, "p1_age"])])
+            age_2 = torch.Tensor([int(self.df.at[index, "p2_age"])])
+            gender_1 = torch.Tensor([int(self.df.at[index, "p1_gender"])])
+            gender_2 = torch.Tensor([int(self.df.at[index, "p2_gender"])])
             y = torch.Tensor([self.df.at[index, "is_related"].astype("uint8")])
 
         k1 = io.imread(img_path_1)
@@ -67,7 +70,10 @@ class FIW(Dataset):
             k1 = self.transform(k1)
             k2 = self.transform(k2)
 
-        return k1,k2,age_1,age_2,gender_1,gender_2,y
+        if self.split=="test":
+            return k1, k2, y
+        else:
+            return k1,k2,age_1,age_2,gender_1,gender_2,y
         
 
 class KinFaceW1(Dataset):
