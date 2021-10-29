@@ -46,11 +46,8 @@ class FIW(Dataset):
 
     def __getitem__(self, index):
         if self.split == "test":
-            img_path_1 = os.path.join(self.work_dir, "test-private-faces", str(self.df.at[index, "p1"]))
-            print(image_path_1)         
+            img_path_1 = os.path.join(self.work_dir, "test-private-faces", str(self.df.at[index, "p1"]))       
             img_path_2 = os.path.join(self.work_dir, "test-private-faces", str(self.df.at[index, "p2"]))
-            print(image_path_2)
-            print("\n")
             y = torch.Tensor([self.df.at[index, "label"].astype("uint8")])
         
         else:

@@ -181,7 +181,7 @@ class Trainer(object):
             #     batch_idx, len(self.val_loader), epoch=self.epoch, iteration=self.iteration,
             #     best_top=self.best_top, batch_time=batch_time, loss=losses, top=top)
             log_str = 'Test_summary: [{0}/{1}/{top.count:}]\nepoch: {epoch:} iter: {iteration:}\t' \
-                  'BestPrec@1: {best_top:.3f}\t' \
+                  'BestPrec@1: {best_top:}\t' \
                   'Time: {batch_time.avg:.3f}\tLoss: {loss.avg:}\t' \
                   'Prec@1: {top.avg:}\t'.format(
                 batch_idx, len(self.val_loader), epoch=self.epoch, iteration=self.iteration,
@@ -242,7 +242,7 @@ class Trainer(object):
                     self.validate()
 
                 if self.cuda:
-                    imgs1, imgs2, target = imgs1.cuda(), imgs2, target.cuda(non_blocking=True)
+                    imgs1, imgs2, target = imgs1.cuda(), imgs2.cuda(), target.cuda(non_blocking=True)
                 imgs1, imgs2, target = Variable(imgs1), Variable(imgs2), Variable(target)
 
                 output = self.model(imgs1, imgs2)
@@ -304,7 +304,7 @@ class Trainer(object):
                     self.validate()
 
                 if self.cuda:
-                    imgs1, imgs2, target = imgs1.cuda(), imgs2, target.cuda(non_blocking=True)
+                    imgs1, imgs2, target = imgs1.cuda(), imgs2.cuda(), target.cuda(non_blocking=True)
                 imgs1, imgs2, target = Variable(imgs1), Variable(imgs2), Variable(target)
 
                 output = self.model(imgs1, imgs2)
@@ -390,7 +390,6 @@ class Trainer(object):
     def train(self):
         #max_epoch = int(math.ceil(1. * self.max_iter / len(self.train_loader))) # 117
         max_epoch = 100
-        self.validate()
         writer = SummaryWriter(self.tb_dir)
         for epoch in tqdm.trange(self.epoch, max_epoch, desc='Train', ncols=80):
             self.epoch = epoch

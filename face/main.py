@@ -36,7 +36,7 @@ configurations = {
         weight_decay=0.0,
         gamma=0.1, # "lr_policy: step"
         step_size=20, # "lr_policy: step"
-        interval_validate=10000,
+        interval_validate=500,
     ),
 }
 
@@ -53,7 +53,7 @@ parser.add_argument('-c', '--config', type=int, default=1, choices=configuration
 parser.add_argument('-bs', '--batch_size', type=int, default=32, help='batch size')
 parser.add_argument('-testfn', '--testfilename', default="test_labels.csv", help="specify the label filename for test")
 parser.add_argument('-trainfn', '--trainfilename', default="train_labels.csv", help="specify the label filename for train")
-parser.add_argument('-w', '--workers', default=4, type=int, metavar='N',help='number of data loading workers (default: 4)')
+parser.add_argument('-w', '--workers', default=2, type=int, metavar='N',help='number of data loading workers (default: 4)')
 parser.add_argument('--arch_type', type=str, default='resnet50_scratch', help='model type',choices=['resnet50_scratch', 'senet50_scratch', 'resnet50', 'vgg16', 'densenet161'])
 
 args = parser.parse_args()
@@ -207,7 +207,7 @@ trainer = Trainer(
     max_iter=cfg['max_iteration'],
     checkpoint_dir=args.checkpoint_dir,
     checkpoint_file = checkpoint_file,
-    print_freq=20,
+    print_freq=100,
     interval_validate = cfg["interval_validate"],
     tb_dir = tb_dir,
 )
