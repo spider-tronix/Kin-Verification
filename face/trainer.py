@@ -12,11 +12,13 @@ from torch.autograd import Variable
 import utils
 import tqdm
 from torch.utils.tensorboard import SummaryWriter
+from torch.utils.data import RandomSampler, BatchSampler
+from torch.utils.data import DataLoader
 
 class Trainer(object):
 
-    def __init__(self, dataset, dataset_type, cmd, cuda, model, criterion, optimizer,
-                 train_loader, val_loader, test_loader, log_file, max_iter,
+    def __init__(self, arch_type, dataset, dataset_type, cmd, cuda, model, criterion, optimizer,
+                 train_loader, val_loader, test_data, log_file, max_iter,
                  checkpoint_dir, checkpoint_file, tb_dir,
                  interval_validate=None, lr_scheduler=None,
                  print_freq=1):
@@ -46,9 +48,10 @@ class Trainer(object):
 
         self.train_loader = train_loader
         self.val_loader = val_loader
-        self.test_loader = test_loader
+        self.test_data = test_data
         self.dataset = dataset
         self.dataset_type = dataset_type
+        self.arch_type = arch_type ]
 
         self.timestamp_start = datetime.datetime.now()
 
@@ -67,6 +70,8 @@ class Trainer(object):
         self.log_file = log_file
         self.tb_dir = tb_dir
         self.step=0
+        self.step_val = 0
+        self.step_test = 0
 
 
     def print_log(self, log_str):
@@ -86,7 +91,7 @@ class Trainer(object):
         if self.dataset == "fiw":                                                                       # different dataloaders
             for batch_idx, (imgs1, imgs2, ages1, ages2, genders1, genders2, target) in tqdm.tqdm(
                 enumerate(self.val_loader), total=len(self.val_loader),
-                desc='Valid iteration={} epoch={}'.format(self.iteration, self.epoch), ncols=80, leave=False):
+                desc='Valid iteration={} epoch={}'.format(self.iteration, self.epoch), ncols=80, leave=True, position=0):
         
 
                 gc.collect()
@@ -130,7 +135,7 @@ class Trainer(object):
         else:
             for batch_idx, (imgs1, imgs2, relations, target) in tqdm.tqdm(
                 enumerate(self.val_loader), total=len(self.val_loader),
-                desc='Valid iteration={} epoch={}'.format(self.iteration, self.epoch), ncols=80, leave=False):
+                desc='Valid iteration={} epoch={}'.format(self.iteration, self.epoch), ncols=80, leave=True, position=0):
 
                 gc.collect()
                 if self.cuda:
@@ -169,7 +174,9 @@ class Trainer(object):
                     print(log_str)
                     self.print_log(log_str)
 
-
+        self.writer.add_scalar("validation loss", losses.avg, global_step=self.step_val)
+        self.writer.add_scalar("training accuracy", top.avg, global_step=self.step_val)
+        self.step_val = self.step_val+1
         if self.cmd == 'train':
             is_best = top.avg > self.best_top
             self.best_top = max(top.avg, self.best_top)
@@ -209,7 +216,7 @@ class Trainer(object):
                 'top': top,
             }, checkpoint_file)
             if is_best:
-                shutil.copy(checkpoint_file, os.path.join(self.checkpoint_dir, 'model_best.pth.tar'))
+                shutil.copy(checkpoint_file, os.path.join(self.checkpoint_dir, f'model_best_{self.dataset_type}_{self.arch_type}.pth.tar'))
             if (self.epoch + 1) % 10 == 0: # save each 10 epoch
                 shutil.copy(checkpoint_file, os.path.join(self.checkpoint_dir, 'checkpoint-{}.pth.tar'.format(self.epoch)))
 
@@ -228,7 +235,7 @@ class Trainer(object):
         end = time.time()
         if self.dataset == "fiw":
             for batch_idx, (imgs1, imgs2, ages1, ages2, genders1, genders2, target) in tqdm.tqdm(enumerate(self.train_loader), total=len(self.train_loader),
-                    desc='Train epoch={}, iter={}'.format(self.epoch, self.iteration), ncols=80, leave=False):
+                    desc='Train epoch={}, iter={}'.format(self.epoch, self.iteration), ncols=80, leave=True, position=0):
                 iteration = batch_idx + self.epoch * len(self.train_loader)
                 data_time.update(time.time() - end)
 
@@ -263,6 +270,7 @@ class Trainer(object):
                 batch_time.update(time.time() - end)
                 end = time.time()
                 if self.iteration % self.print_freq == 0:
+                    print("\nhi\n")
                     #print(type(top.count), type(batch_time.val),type(data_time.val),type(losses.val),type(top.val))
                     # log_str = 'Train: [{0}/{1}/{top.count:}]\tepoch: {epoch:}\titer: {iteration:}\t' \
                     #     'Time: {batch_time.val:.3f} ({batch_time.avg:.3f})\t' \
@@ -290,7 +298,7 @@ class Trainer(object):
         else:
             for batch_idx, (imgs1, imgs2, relations, target) in tqdm.tqdm(
                     enumerate(self.train_loader), total=len(self.train_loader),
-                    desc='Train epoch={}, iter={}'.format(self.epoch, self.iteration), ncols=80, leave=False):
+                    desc='Train epoch={}, iter={}'.format(self.epoch, self.iteration), ncols=80, leave=True, position=0):
                 iteration = batch_idx + self.epoch * len(self.train_loader)
                 data_time.update(time.time() - end)
 
@@ -361,8 +369,8 @@ class Trainer(object):
                     batch_time=batch_time, data_time=data_time, loss=losses, top=top)
         print(log_str)
         self.print_log(log_str)
-        writer.add_scalar("training loss", loss.avg, global_step=self.step)
-        writer.add_scalar("training accuracy", top.avg, global_step=self.step)
+        self.writer.add_scalar("training loss", losses.avg, global_step=self.step)
+        self.writer.add_scalar("training accuracy", top.avg, global_step=self.step)
         self.step = self.step + 1
 
     def test(self):
@@ -371,7 +379,8 @@ class Trainer(object):
         num_samples = 0
         self.model.eval()
         with torch.no_grad():
-            for batch_idx, (imgs1, imgs2,target) in enumerate(self.test_loader):
+            for batch_idx, (imgs1, imgs2,target) in enumerate(
+                DataLoader(self.test_data, sampler=RandomSampler(self.test_data, replacement=True, num_samples=128), batch_size=16, drop_last=True)):
                 target = target.view(-1).long()
                 if self.cuda:
                     imgs1 = imgs1.cuda()
@@ -383,20 +392,24 @@ class Trainer(object):
                 num_correct += (predictions == target).sum()
                 num_samples += predictions.size(0)
 
-        s = f"\nnum_correct: {num_correct}\tnum_samples: {num_samples}\tTesting accuracy: {float(num_correct)/float(num_samples)*100:.2f}"
+        acc = (float(num_correct)/float(num_samples)*100)
+        s = f"\nnum_correct: {num_correct}\tnum_samples: {num_samples}\tTesting accuracy: {acc}"
         print(s)
         self.print_log(s)
+        self.writer.add_scalar("testing accuracy", acc, self.step_test)
+        self.step_test = self.step_test + 1
 
     def train(self):
         #max_epoch = int(math.ceil(1. * self.max_iter / len(self.train_loader))) # 117
         max_epoch = 100
-        writer = SummaryWriter(self.tb_dir)
+        self.writer = SummaryWriter(self.tb_dir)
         for epoch in tqdm.trange(self.epoch, max_epoch, desc='Train', ncols=80):
             self.epoch = epoch
             self.train_epoch()
+            if self.epoch+1 % 2 == 0:
+                self.test()
             if self.iteration >= self.max_iter:
                 break
-        self.test()
 
 
 

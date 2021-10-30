@@ -30,6 +30,7 @@ class FIW(Dataset):
                 self.df = pd.DataFrame()                                    # if all the relations are considered for test label
                 for f in os.listdir(self.label):
                     self.df = pd.append(self.df, pd.read_csv(os.path.join(self.label, f), low_memory=False, encoding = "utf-8"))
+            self.df = self.df.reset_index(drop=True)
 
         else:
             self.df = pd.read_csv(self.label, low_memory=False, encoding = "utf-8")
@@ -38,19 +39,15 @@ class FIW(Dataset):
                 self.df = self.df[(self.df["person1"].str.split("/", expand=True)[1].isin(self.val_list)) | (self.df["person2"].str.split("/", expand=True)[1].isin(self.val_list))]
                 self.df = self.df.reset_index(drop=True)
             else:
-                self.df = self.df[(~self.df["person1"].str.split("/", expand=True)[1].isin(self.val_list)) | (~self.df["person2"].str.split("/", expand=True)[1].isin(self.val_list))]
-                self.df = self.df.reset_index(drop=True)                
+                self.df = self.df[(~self.df["person1"].str.split("/", expand=True)[1].isin(self.val_list)) & (~self.df["person2"].str.split("/", expand=True)[1].isin(self.val_list))]
+                self.df = self.df.reset_index(drop=True)               
 
     def __len__(self):
         return len(self.df)
 
     def __getitem__(self, index):
         if self.split == "test":
-<<<<<<< HEAD
             img_path_1 = os.path.join(self.work_dir, "test-private-faces", str(self.df.at[index, "p1"]))       
-=======
-            img_path_1 = os.path.join(self.work_dir, "test-private-faces", str(self.df.at[index, "p1"]))
->>>>>>> 148006c0c6c74fa11b683bdd0c0e10fc4459d177
             img_path_2 = os.path.join(self.work_dir, "test-private-faces", str(self.df.at[index, "p2"]))
             y = torch.Tensor([self.df.at[index, "label"].astype("uint8")])
         

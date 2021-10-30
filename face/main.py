@@ -22,21 +22,21 @@ from trainer import Trainer
 
 # global variables
 num_classes = 2
-start_fid = "F0500"
-end_fid = "F0550"
+start_fid = "F0300"
+end_fid = "F0500"
 img_size = 224
 N_IDENTITY = 8631
 
 # hyperparameter setting
 configurations = {
     1: dict(
-        max_iteration=62500,
+        max_iteration=500000,
         lr=1.0e-1,
         momentum=0.9,
         weight_decay=0.0,
         gamma=0.1, # "lr_policy: step"
-        step_size=20, # "lr_policy: step"
-        interval_validate=500,
+        step_size=75000, # "lr_policy: step"
+        interval_validate=2000,
     ),
 }
 
@@ -114,7 +114,7 @@ else:
 train_loader = DataLoader(train_data, batch_size=args.batch_size, shuffle=True, **kwargs)
 if val_data:
     val_loader = DataLoader(val_data, batch_size=args.batch_size, shuffle=False, **kwargs) 
-test_loader = DataLoader(test_data, batch_size=args.batch_size, shuffle=False, **kwargs)
+#test_loader = DataLoader(test_data, batch_size=args.batch_size, shuffle=False, **kwargs)
 
 #model vggface2
 if args.dataset_type == "vggface2":
@@ -136,7 +136,9 @@ else:
     model.apply(weights_initialize)
 
 # training setting
-checkpoint_file = f"checkpoints_{args.dataset_type}_{args.arch_type}"
+checkpoint_file = f"checkpoints_{args.dataset_type}_{args.arch_type}.pth.tar"
+if not os.path.exists(args.checkpoint_dir):
+    utils.create_dir(args.checkpoint_dir)
 start_epoch = 0
 start_iteration = 0
 if resume == "yes" or resume == "y" or resume == "Yes":
@@ -192,6 +194,7 @@ lr_scheduler = torch.optim.lr_scheduler.StepLR(optim, cfg['step_size'],gamma=cfg
 # train the model
 tb_dir = os.path.join("runs", args.dataset_type, args.arch_type)
 trainer = Trainer(
+    arch_type = self.arch_type,
     dataset = args.dataset,
     dataset_type = args.dataset_type,
     cmd="train",
@@ -202,7 +205,7 @@ trainer = Trainer(
     lr_scheduler=lr_scheduler,
     train_loader=train_loader,
     val_loader=val_loader,
-    test_loader=test_loader,
+    test_data=test_data,
     log_file=log_file,
     max_iter=cfg['max_iteration'],
     checkpoint_dir=args.checkpoint_dir,
