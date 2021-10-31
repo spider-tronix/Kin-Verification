@@ -12,3 +12,4 @@ Kin verification is the task of determining whether two individuals are genetica
 # Progress
 [Slides](https://docs.google.com/presentation/d/1LsYYwrZFDHpkL1jedepb29bqbxx3vVSiVuYtsKHCPKY/edit?usp=sharing)
  
+https://chrome.google.com/webstore/detail/curlwget/dgcfkhmmpcmkikfmonjcalnjcmjcjjdn
