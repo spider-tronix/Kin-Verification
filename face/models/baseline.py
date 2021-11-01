@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torchvision
 import torch.nn.functional as F
+import optuna
 
 class ConvNet(nn.Module):
     def __init__(self, arch, pretrained=False):
@@ -42,37 +43,60 @@ class ConvNet(nn.Module):
         return x, y
 
 class fcNet(nn.Module):
-    def __init__(self, in_features, num_classes=2):
+    def __init__(self, in_features, num_classes=2, trial=None):
         super(fcNet, self).__init__()
         self.in_features = in_features
-        self.dens1 = nn.Linear(in_features=self.in_features[0]*2, out_features=self.in_features[0])
-        self.dens2 = nn.Linear(in_features=self.in_features[0], out_features=self.in_features[1])
-        self.dens3 = nn.Linear(in_features=self.in_features[1], out_features=self.in_features[2])
-        self.dens4 = torch.nn.Linear(in_features=self.in_features[-1], out_features=num_classes)
+        self.layers = []
+        self.trial = trial
+        if self.trial is None:
+            self.model = nn.Linear(self.in_features[0]*2, num_classes)
+            # self.dens1 = nn.Linear(in_features=self.in_features[0]*2, out_features=self.in_features[0])
+            # self.dens2 = nn.Linear(in_features=self.in_features[0], out_features=self.in_features[1])
+            # self.dens3 = nn.Linear(in_features=self.in_features[1], out_features=self.in_features[2])
+            # self.dens4 = torch.nn.Linear(in_features=self.in_features[-1], out_features=num_classes)
+        else:
+            n_layers = self.trial.suggest_int("n_layers", 0, 3)
+            self.in_features = self.in_features[0]*2
+            for i in range(n_layers):
+                self.out_features = self.trial.suggest_int("n_units_l{}".format(i), 2, 9)
+                self.out_features = 2**self.out_features
+                self.layers.append(nn.Linear(self.in_features, self.out_features))
+                self.layers.append(nn.ReLU())
+                p = self.trial.suggest_float("dropout_l{}".format(i), 0.1, 0.5)
+                self.layers.append(nn.Dropout(p))
+
+                self.in_features = self.out_features
+            self.layers.append(nn.Linear(self.in_features, num_classes))
+            self.model = nn.Sequential(*self.layers)
 
     def forward(self, x):
-        x = self.dens1(x)
-        x = F.relu(x)
-        x = F.dropout(x, p=0.25, training=self.training)
-        
-        
-        x = self.dens2(x)
-        x = F.relu(x)
-        x = F.dropout(x, p=0.25, training=self.training)
-        
-        x = self.dens3(x)
-        x = F.relu(x)
-        x = F.dropout(x, p=0.25, training=self.training)
+        if self.trial is None:
+            x = self.model(x)
+            # x = self.dens1(x)
+            # x = F.relu(x)
+            # x = F.dropout(x, p=0.25, training=self.training)
+            
+            
+            # x = self.dens2(x)
+            # x = F.relu(x)
+            # x = F.dropout(x, p=0.25, training=self.training)
+            
+            # x = self.dens3(x)
+            # x = F.relu(x)
+            # x = F.dropout(x, p=0.25, training=self.training)
 
-        x = self.dens4(x)
+            # x = self.dens4(x)
+
+        else:
+            x = self.model(x)
         return x
 
 class MyNet(torch.nn.Module):
-    def __init__(self, arch, pretrained=False):
+    def __init__(self, arch, trial=None, pretrained=False):
         super().__init__()
         self.arch = arch
         self.pretrained = pretrained
-
+        self.trial = trial
         if self.arch == "densenet161":
             self.in_features = [2208, 512, 128]
         elif self.arch == "resnet50":
@@ -81,7 +105,7 @@ class MyNet(torch.nn.Module):
             self.in_features = [4096, 512, 128]
         
         self.cnet = ConvNet(self.arch, self.pretrained)
-        self.fnet = fcNet(self.in_features)
+        self.fnet = fcNet(self.in_features, trial=self.trial)
     
     def forward(self, x, y):
         x, y = self.cnet(x, y)

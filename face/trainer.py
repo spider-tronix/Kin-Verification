@@ -51,7 +51,7 @@ class Trainer(object):
         self.test_data = test_data
         self.dataset = dataset
         self.dataset_type = dataset_type
-        self.arch_type = arch_type ]
+        self.arch_type = arch_type 
 
         self.timestamp_start = datetime.datetime.now()
 
@@ -218,7 +218,7 @@ class Trainer(object):
             if is_best:
                 shutil.copy(checkpoint_file, os.path.join(self.checkpoint_dir, f'model_best_{self.dataset_type}_{self.arch_type}.pth.tar'))
             if (self.epoch + 1) % 10 == 0: # save each 10 epoch
-                shutil.copy(checkpoint_file, os.path.join(self.checkpoint_dir, 'checkpoint-{}.pth.tar'.format(self.epoch)))
+                shutil.copy(checkpoint_file, os.path.join(self.checkpoint_dir, f'checkpoint-{self.dataset_type}-{self.arch_type}-{self.epoch}.pth.tar'))
 
             if training:
                 self.model.train()
@@ -231,6 +231,8 @@ class Trainer(object):
 
         self.model.train()
         self.optim.zero_grad()
+
+        checkpoint_interval = len(self.train_loader)//4
 
         end = time.time()
         if self.dataset == "fiw":
@@ -270,7 +272,6 @@ class Trainer(object):
                 batch_time.update(time.time() - end)
                 end = time.time()
                 if self.iteration % self.print_freq == 0:
-                    print("\nhi\n")
                     #print(type(top.count), type(batch_time.val),type(data_time.val),type(losses.val),type(top.val))
                     # log_str = 'Train: [{0}/{1}/{top.count:}]\tepoch: {epoch:}\titer: {iteration:}\t' \
                     #     'Time: {batch_time.val:.3f} ({batch_time.avg:.3f})\t' \
@@ -294,6 +295,35 @@ class Trainer(object):
 
                 if self.lr_scheduler is not None:
                     self.lr_scheduler.step()  # update lr
+
+                #if (batch_idx+1) % 500 == 0:
+                if (batch_idx+1) % checkpoint_interval == 0:
+                    is_best = top.avg > self.best_top
+                    self.best_top = max(top.avg, self.best_top)
+
+                    if self.dataset_type == "scratch":
+                        model_state = self.model.state_dict()
+                    elif self.dataset_type == "vggface2":
+                        model_state = self.model.fc.state_dict()
+                    else:
+                        model_state = self.model.fnet.state_dict()
+
+                    checkpoint_file = os.path.join(self.checkpoint_dir, self.checkpoint_file)
+                    torch.save({
+                        'epoch': self.epoch,
+                        'iteration': self.iteration,
+                        'arch': self.model.__class__.__name__,
+                        'optim_state_dict': self.optim.state_dict(),
+                        'model_state_dict': model_state,
+                        'best_top': self.best_top,
+                        'batch_time': batch_time,
+                        'losses': losses,
+                        'top': top,
+                    }, checkpoint_file)
+                    if is_best:
+                        shutil.copy(checkpoint_file, os.path.join(self.checkpoint_dir, f'model_best_{self.dataset_type}_{self.arch_type}.pth.tar'))
+                    if (self.epoch + 1) % 10 == 0: # save each 10 epoch
+                        shutil.copy(checkpoint_file, os.path.join(self.checkpoint_dir, f'checkpoint-{self.dataset_type}-{self.arch_type}-{self.epoch}.pth.tar'))
 
         else:
             for batch_idx, (imgs1, imgs2, relations, target) in tqdm.tqdm(
@@ -354,6 +384,35 @@ class Trainer(object):
 
                 if self.lr_scheduler is not None:
                     self.lr_scheduler.step()  # update lr
+
+                if (batch_idx+1) % checkpoint_interval == 0:
+                    is_best = top.avg > self.best_top
+                    self.best_top = max(top.avg, self.best_top)
+
+                    if self.dataset_type == "scratch":
+                        model_state = self.model.state_dict()
+                    elif self.dataset_type == "vggface2":
+                        model_state = self.model.fc.state_dict()
+                    else:
+                        model_state = self.model.fnet.state_dict()
+
+                    checkpoint_file = os.path.join(self.checkpoint_dir, self.checkpoint_file)
+                    torch.save({
+                        'epoch': self.epoch,
+                        'iteration': self.iteration,
+                        'arch': self.model.__class__.__name__,
+                        'optim_state_dict': self.optim.state_dict(),
+                        'model_state_dict': model_state,
+                        'best_top': self.best_top,
+                        'batch_time': batch_time,
+                        'losses': losses,
+                        'top': top,
+                    }, checkpoint_file)
+                    if is_best:
+                        shutil.copy(checkpoint_file, os.path.join(self.checkpoint_dir, f'model_best_{self.dataset_type}_{self.arch_type}.pth.tar'))
+                    if (self.epoch + 1) % 10 == 0: # save each 10 epoch
+                        shutil.copy(checkpoint_file, os.path.join(self.checkpoint_dir, f'checkpoint-{self.dataset_type}-{self.arch_type}-{self.epoch}.pth.tar'))        
+        
 
         # log_str = 'Train_summary: [{0}/{1}/{top.count:}]\nepoch: {epoch:}\titer: {iteration:}\t' \
         #               'Time: {batch_time.avg:.3f}\tData: {data_time.avg:.3f}\t' \
