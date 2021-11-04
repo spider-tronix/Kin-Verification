@@ -1,5 +1,5 @@
 # python main.py -wd E:\Prem\spiderRD\kaggleFIW -wts E:\Prem\spiderRD\senet50_scratch_weight.pkl -r no -testfn test_labels.csv -trainfn train_labels.csv --arch_type senet50_scratch#
-# python main.py -wd E:\Prem\spiderRD\kaggleFIW -r no -testfn test_labels.csv -trainfn train_labels.csv --arch_type vgg16 -dt imagenet#
+# python main.py -wd E:\Prem\spiderRD\kaggleFIW -r no -testfn test_labels.csv -trainfn train_annotations.csv --arch_type resnet50 -dt imagenet#
 import os
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
 import torch
@@ -40,6 +40,8 @@ configurations = {
         max_iteration=500000,
         lr=1.0e-3,
         momentum=0.74,
+        beta1=0.9,
+        beta2=0.999,
         weight_decay=0.0,
         gamma=0.1, # "lr_policy: step"
         step_size=75000, # "lr_policy: step"
@@ -118,20 +120,23 @@ def objective(trial):
                 params_to_update.append(param)
     
     lr = trial.suggest_float("lr", 1e-5, 1e-1, log=True)
+    weight_decay = trial.suggest_float("weight_decay", 1e-5, 1e-0, log=True)
     if optimizer_name == "SGD":
-        momentum = trial.suggest_uniform("momentum", 0.0, 1.0)
+        momentum = trial.suggest_uniform("momentum", 0.5, 1.0)
         optim = torch.optim.SGD(
             params_to_update,
             lr=lr,
+            weight_decay=weight_decay,
             momentum=momentum
         )
 
     else:
-        beta1 = trial.suggest_uniform("beta1", 0.0, 1.0)
-        beta2 = trial.suggest_uniform("beta2", 0.0, 1.0)
+        beta1 = trial.suggest_uniform("beta1", 0.5, 1.0)
+        beta2 = trial.suggest_uniform("beta2", 0.5, 1.0)
         optim = torch.optim.Adam(
             params_to_update,
             lr = lr,
+            weight_decay=weight_decay,
             betas = (beta1,beta2)
         )
 
@@ -150,6 +155,7 @@ def objective(trial):
         cuda=torch.cuda.is_available(),
         criterion=criterion,
         loader=train_loader,
+        val_loader=val_loader,
         batch_size=args.batch_size,
         num_epochs=10,
         operation=args.check_training,
@@ -216,13 +222,26 @@ if __name__ == "__main__":
             
         train_loader = DataLoader(train_subset, batch_size=args.batch_size, shuffle=True, **kwargs)
         if val_data:
-            val_loader = DataLoader(val_subset, batch_size=args.batch_size, shuffle=False, **kwargs)
+            #val_loader = DataLoader(val_subset, batch_size=args.batch_size, shuffle=False, **kwargs)
+            val_loader = DataLoader(val_subset, batch_size=len(l2), shuffle=False, **kwargs)
 
     else:
-        train_loader = DataLoader(train_data, batch_size=args.batch_size, shuffle=True, **kwargs)
-
+        random.seed(10)
+        l1 = random.sample(range(len(train_data)), int(0.001*len(train_data)))
+        train_subset = Subset(train_data, l1)
+        if args.dataset == "fiw":
+            random.seed(20)
+            l2 = random.sample(range(1,len(val_data)), int(0.001*len(val_data)))
+            val_subset = Subset(val_data, l2)
+            
+        train_loader = DataLoader(train_subset, batch_size=args.batch_size, shuffle=True, **kwargs)
         if val_data:
-            val_loader = DataLoader(val_data, batch_size=args.batch_size, shuffle=False, **kwargs)
+            #val_loader = DataLoader(val_subset, batch_size=args.batch_size, shuffle=False, **kwargs)
+            val_loader = DataLoader(val_subset, batch_size=len(l2), shuffle=False, **kwargs)
+        # train_loader = DataLoader(train_data, batch_size=args.batch_size, shuffle=True, **kwargs)
+
+        # if val_data:
+        #     val_loader = DataLoader(val_data, batch_size=args.batch_size, shuffle=False, **kwargs)
 
     #test_loader = DataLoader(test_data, batch_size=args.batch_size, shuffle=False, **kwargs)
 
@@ -278,7 +297,7 @@ if __name__ == "__main__":
     start_epoch = 0
     start_iteration = 0
     if resume == "yes" or resume == "y" or resume == "Yes":
-        f = os.path.join(root, args.checkpoint_dir, checkpoint_file)
+        f = os.path.join(args.checkpoint_dir, checkpoint_file)
         checkpoint = torch.load(f)
 
         if args.dataset_type == "scratch":
@@ -316,6 +335,12 @@ if __name__ == "__main__":
         lr=cfg['lr'],
         momentum=cfg['momentum'],
         weight_decay=cfg['weight_decay'])
+
+    # optim = torch.optim.Adam(
+    #     params_to_update,
+    #     lr=cfg['lr'],
+    #     betas=(cfg['beta1'], cfg['beta2'])
+    # )
     if resume == "yes" or resume == "Yes" or resume == "y":
         optim.load_state_dict(checkpoint['optim_state_dict'])
         
@@ -342,6 +367,7 @@ if __name__ == "__main__":
             cuda=torch.cuda.is_available(),
             criterion=criterion,
             loader=train_loader,
+            val_loader=val_loader,
             batch_size=args.batch_size,
             num_epochs=100,
             operation=args.check_training,
@@ -366,8 +392,8 @@ if __name__ == "__main__":
         max_iter=cfg['max_iteration'],
         checkpoint_dir=args.checkpoint_dir,
         checkpoint_file = checkpoint_file,
-        print_freq=5,
-        interval_validate = cfg["interval_validate"],
+        print_freq=3,#500,
+        interval_validate = 4,#cfg["interval_validate"],
         tb_dir = tb_dir,
     )
     trainer.epoch = start_epoch

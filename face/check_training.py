@@ -7,7 +7,7 @@ import random
 import optuna
 
 class performance(object):
-    def __init__(self, model, optim, cuda, criterion, loader, batch_size, num_epochs=10, lr_scheduler=None, operation="subset", trial=None):
+    def __init__(self, model, optim, cuda, criterion, loader, val_loader, batch_size, num_epochs=10, lr_scheduler=None, operation="subset", trial=None):
         self.model = model
         self.optim = optim
         self.cuda = cuda
@@ -18,6 +18,7 @@ class performance(object):
         self.trial = trial
         self.num_epochs = num_epochs
         self.operation = operation
+        self.val_loader = val_loader
 
         if self.operation == "single":
             self.check_single()
@@ -97,7 +98,7 @@ class performance(object):
                 if self.lr_scheduler is not None:
                     self.lr_scheduler.step()  # update lr
 
-                if (batch_idx) % 1 == 0:
+                if (batch_idx) % (len(self.loader)//3) == 0:
                     print(
                         f"Epoch: {epoch}/{self.num_epochs} Batch {batch_idx}/{len(self.loader)} \
                         Current Loss : {float(loss):.4f} Avg loss: {float(loss_sum)/n_batches:.4f} \
@@ -106,10 +107,11 @@ class performance(object):
             
             print(f"finished epoch {epoch}...")
             print(f"Avg Loss: {float(loss_sum)/n_batches:.4f} Avg Accuracy: {float(acc_sum)/n_batches:.4f}")
-        
+            self.avg_accuracy = self.validate()
+            #print(self.model.training)
             if self.trial is not None:
-                self.avg_accuracy = float(acc_sum)/n_batches
-                self.avg_loss = float(loss_sum)/n_batches
+                # self.avg_accuracy = float(acc_sum)/n_batches
+                # self.avg_loss = float(loss_sum)/n_batches
                 self.trial.report(self.avg_accuracy, epoch)
 
                 # Handle pruning based on the intermediate value.
@@ -118,3 +120,43 @@ class performance(object):
         
         if self.trial is not None:
             return self.avg_accuracy
+
+    def validate(self):
+        self.model.eval()
+        #print(self.model.training)
+        loss_sum = torch.Tensor([0])
+        acc_sum = torch.Tensor([0])
+        n_batches = 0
+        for batch_idx, (imgs1, imgs2, ages1, ages2, genders1, genders2, target) in enumerate(self.val_loader):
+            iteration = batch_idx
+            target = target.view(-1).long()
+
+            if self.cuda:
+                imgs1, imgs2, target = imgs1.cuda(), imgs2.cuda(), target.cuda(non_blocking=True)
+            imgs1, imgs2, target = Variable(imgs1), Variable(imgs2), Variable(target)
+
+            output = self.model(imgs1, imgs2)
+            loss = self.criterion(output, target)
+            if np.isnan(float(loss.data)):
+                raise ValueError('loss is nan while training')
+
+            _, prediction = output.max(1)
+            num_correct = (prediction == target).sum()
+            acc = float(num_correct)/float(self.batch_size)*100
+            n_batches = n_batches + 1
+            #print(prediction, target, num_correct)
+
+            loss_sum = loss_sum + loss
+            acc_sum = acc_sum + acc
+            # if (batch_idx) % (len(self.val_loader)//3) == 0:
+            #     print(
+            #         f"Batch {batch_idx}/{len(self.val_loader)} \
+            #         Current val Loss : {float(loss):.4f} Avg val loss: {float(loss_sum)/n_batches:.4f} \
+            #         Cuurent val accuracy: {float(acc):.4f} Avg val accuracy: {float(acc_sum)/n_batches:.4f}" 
+            #     )
+            
+        print(f"finished validating...")
+        print(f"Avg val Loss: {float(loss_sum)/n_batches:.4f} Avg val Accuracy: {float(acc_sum)/n_batches:.4f}")
+
+        self.model.train()
+        return float(acc_sum)/n_batches

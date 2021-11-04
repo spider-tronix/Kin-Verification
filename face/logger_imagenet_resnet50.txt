@@ -1,2 +1,250 @@
 Train: [0/2458/32]
 epoch: 0	iter: 0	Time: 13.215 (13.215)	Data: 1.817 (1.817)	Loss: 0.6923959255218506 (0.6923959255218506)	Prec@1: tensor([43.7500]) (tensor([43.7500]))	
+Train: [0/3/32]
+epoch: 0	iter: 0	Time: 9.646 (9.646)	Data: 0.192 (0.192)	Loss: 0.6815744042396545 (0.6815744042396545)	Prec@1: tensor([59.3750]) (tensor([59.3750]))	
+Train: [0/3/32]
+epoch: 0	iter: 0	Time: 11.217 (11.217)	Data: 0.337 (0.337)	Loss: 0.7052649855613708 (0.7052649855613708)	Prec@1: tensor([46.8750]) (tensor([46.8750]))	
+Test: [0/1/21]
+epoch: 0	iter: 1	Time: 6.935 (6.935)	Loss: 0.6569604277610779 (0.6569604277610779)	Prec@1: tensor([66.6667]) (tensor([66.6667]))	
+Test_summary: [0/1/21]
+epoch: 0 iter: 1	BestPrec@1: tensor([66.6667])	Time: 6.935	Loss: 0.6569604277610779	Prec@1: tensor([66.6667])	
+Train: [1/3/64]
+epoch: 0	iter: 1	Time: 17.487 (14.352)	Data: 0.214 (0.276)	Loss: 0.6925604939460754 (0.6989127397537231)	Prec@1: tensor([43.7500]) (tensor([45.3125]))	
+Train: [2/3/78]
+epoch: 0	iter: 2	Time: 4.066 (10.923)	Data: 0.091 (0.214)	Loss: 0.7262272238731384 (0.7038153409957886)	Prec@1: tensor([35.7143]) (tensor([43.5897]))	
+Train_summary: [2/3/78]
+epoch: 0	iter: 2	Time: 10.923	Data: 0.214	Loss: 0.7038153409957886	Prec@1: tensor([43.5897])	
+Test: [0/1/21]
+epoch: 1	iter: 3	Time: 6.116 (6.116)	Loss: 0.7078913450241089 (0.7078913450241089)	Prec@1: tensor([33.3333]) (tensor([33.3333]))	
+Test_summary: [0/1/21]
+epoch: 1 iter: 3	BestPrec@1: tensor([66.6667])	Time: 6.116	Loss: 0.7078913450241089	Prec@1: tensor([33.3333])	
+Train: [0/3/32]
+epoch: 1	iter: 3	Time: 16.107 (16.107)	Data: 0.191 (0.191)	Loss: 0.6697571277618408 (0.6697571277618408)	Prec@1: tensor([68.7500]) (tensor([68.7500]))	
+Train: [1/3/64]
+epoch: 1	iter: 4	Time: 9.986 (13.046)	Data: 0.189 (0.190)	Loss: 0.8161292672157288 (0.7429431676864624)	Prec@1: tensor([37.5000]) (tensor([53.1250]))	
+Test: [0/1/21]
+epoch: 1	iter: 5	Time: 6.224 (6.224)	Loss: 0.7341660261154175 (0.7341660261154175)	Prec@1: tensor([33.3333]) (tensor([33.3333]))	
+Test_summary: [0/1/21]
+epoch: 1 iter: 5	BestPrec@1: tensor([66.6667])	Time: 6.224	Loss: 0.7341660261154175	Prec@1: tensor([33.3333])	
+Train: [2/3/78]
+epoch: 1	iter: 5	Time: 10.363 (12.152)	Data: 0.117 (0.166)	Loss: 0.7928460240364075 (0.7519001364707947)	Prec@1: tensor([42.8571]) (tensor([51.2821]))	
+Train_summary: [2/3/78]
+epoch: 1	iter: 5	Time: 12.152	Data: 0.166	Loss: 0.7519001364707947	Prec@1: tensor([51.2821])	
+Train: [0/3/32]
+epoch: 0	iter: 0	Time: 9.898 (9.898)	Data: 0.184 (0.184)	Loss: 0.7918913960456848 (0.7918913960456848)	Prec@1: tensor([43.7500]) (tensor([43.7500]))	
+Test: [0/1/21]
+epoch: 0	iter: 2	Time: 6.210 (6.210)	Loss: 0.7552899122238159 (0.7552899122238159)	Prec@1: tensor([33.3333]) (tensor([33.3333]))	
+Test_summary: [0/1/21]
+epoch: 0 iter: 2	BestPrec@1: tensor([33.3333])	Time: 6.210	Loss: 0.7552899122238159	Prec@1: tensor([33.3333])	
+Train_summary: [2/3/78]
+epoch: 0	iter: 2	Time: 10.064	Data: 0.148	Loss: 0.7481500506401062	Prec@1: tensor([43.5897])	
+Train: [0/3/32]
+epoch: 0	iter: 0	Time: 9.978 (9.978)	Data: 0.170 (0.170)	Loss: 0.7002558708190918 (0.7002558708190918)	Prec@1: tensor([53.1250]) (tensor([53.1250]))	
+Train_summary: [2/3/78]
+epoch: 0	iter: 2	Time: 7.963	Data: 0.144	Loss: 0.7156239748001099	Prec@1: tensor([46.1538])	
+Test: [0/1/21]
+epoch: 1	iter: 3	Time: 6.200 (6.200)	Loss: 0.7005870342254639 (0.7005870342254639)	Prec@1: tensor([33.3333]) (tensor([33.3333]))	
+Test_summary: [0/1/21]
+epoch: 1 iter: 3	BestPrec@1: tensor([46.1538])	Time: 6.200	Loss: 0.7005870342254639	Prec@1: tensor([33.3333])	
+Train: [0/3/32]
+epoch: 1	iter: 3	Time: 16.157 (16.157)	Data: 0.155 (0.155)	Loss: 0.6797338724136353 (0.6797338724136353)	Prec@1: tensor([50.]) (tensor([50.]))	
+Train_summary: [2/3/78]
+epoch: 1	iter: 5	Time: 10.065	Data: 0.144	Loss: 0.6956202983856201	Prec@1: tensor([53.8462])	
+
+num_correct: 65	num_samples: 128	Testing accuracy: 50.78125
+Train: [0/3/32]
+epoch: 2	iter: 6	Time: 9.838 (9.838)	Data: 0.186 (0.186)	Loss: 0.6816053986549377 (0.6816053986549377)	Prec@1: tensor([56.2500]) (tensor([56.2500]))	
+Test: [0/1/21]
+epoch: 2	iter: 7	Time: 6.109 (6.109)	Loss: 0.7165140509605408 (0.7165140509605408)	Prec@1: tensor([33.3333]) (tensor([33.3333]))	
+Test_summary: [0/1/21]
+epoch: 2 iter: 7	BestPrec@1: tensor([53.8462])	Time: 6.109	Loss: 0.7165140509605408	Prec@1: tensor([33.3333])	
+Train_summary: [2/3/78]
+epoch: 2	iter: 8	Time: 10.032	Data: 0.160	Loss: 0.6927306652069092	Prec@1: tensor([55.1282])	
+Train: [0/3/32]
+epoch: 3	iter: 9	Time: 9.931 (9.931)	Data: 0.174 (0.174)	Loss: 0.6992604732513428 (0.6992604732513428)	Prec@1: tensor([43.7500]) (tensor([43.7500]))	
+Test: [0/1/21]
+epoch: 3	iter: 11	Time: 6.127 (6.127)	Loss: 0.6411367058753967 (0.6411367058753967)	Prec@1: tensor([66.6667]) (tensor([66.6667]))	
+Test_summary: [0/1/21]
+epoch: 3 iter: 11	BestPrec@1: tensor([66.6667])	Time: 6.127	Loss: 0.6411367058753967	Prec@1: tensor([66.6667])	
+Train_summary: [2/3/78]
+epoch: 3	iter: 11	Time: 10.046	Data: 0.157	Loss: 0.6986145973205566	Prec@1: tensor([47.4359])	
+
+num_correct: 57	num_samples: 128	Testing accuracy: 44.53125
+Train: [0/3/32]
+epoch: 4	iter: 12	Time: 10.796 (10.796)	Data: 0.217 (0.217)	Loss: 0.6675392389297485 (0.6675392389297485)	Prec@1: tensor([53.1250]) (tensor([53.1250]))	
+Train_summary: [2/3/78]
+epoch: 4	iter: 14	Time: 8.650	Data: 0.177	Loss: 0.6606007814407349	Prec@1: tensor([56.4103])	
+Test: [0/1/21]
+epoch: 5	iter: 15	Time: 6.670 (6.670)	Loss: 0.9070172309875488 (0.9070172309875488)	Prec@1: tensor([33.3333]) (tensor([33.3333]))	
+Test_summary: [0/1/21]
+epoch: 5 iter: 15	BestPrec@1: tensor([66.6667])	Time: 6.670	Loss: 0.9070172309875488	Prec@1: tensor([33.3333])	
+Train: [0/3/32]
+epoch: 5	iter: 15	Time: 17.435 (17.435)	Data: 0.209 (0.209)	Loss: 0.685469925403595 (0.685469925403595)	Prec@1: tensor([53.1250]) (tensor([53.1250]))	
+Train_summary: [2/3/78]
+epoch: 5	iter: 17	Time: 10.913	Data: 0.169	Loss: 0.6569389700889587	Prec@1: tensor([56.4103])	
+
+num_correct: 80	num_samples: 128	Testing accuracy: 62.5
+Train: [0/3/32]
+epoch: 6	iter: 18	Time: 18.566 (18.566)	Data: 0.391 (0.391)	Loss: 0.625551164150238 (0.625551164150238)	Prec@1: tensor([84.3750]) (tensor([84.3750]))	
+Test: [0/1/21]
+epoch: 6	iter: 19	Time: 10.568 (10.568)	Loss: 0.8119522929191589 (0.8119522929191589)	Prec@1: tensor([33.3333]) (tensor([33.3333]))	
+Test_summary: [0/1/21]
+epoch: 6 iter: 19	BestPrec@1: tensor([66.6667])	Time: 10.568	Loss: 0.8119522929191589	Prec@1: tensor([33.3333])	
+Train_summary: [2/3/78]
+epoch: 6	iter: 20	Time: 17.290	Data: 0.312	Loss: 0.6513943672180176	Prec@1: tensor([65.3846])	
+Train: [0/3/32]
+epoch: 7	iter: 21	Time: 15.770 (15.770)	Data: 0.328 (0.328)	Loss: 0.5988644361495972 (0.5988644361495972)	Prec@1: tensor([84.3750]) (tensor([84.3750]))	
+Test: [0/1/21]
+epoch: 7	iter: 23	Time: 9.702 (9.702)	Loss: 0.9243364930152893 (0.9243364930152893)	Prec@1: tensor([33.3333]) (tensor([33.3333]))	
+Test_summary: [0/1/21]
+epoch: 7 iter: 23	BestPrec@1: tensor([66.6667])	Time: 9.702	Loss: 0.9243364930152893	Prec@1: tensor([33.3333])	
+Train_summary: [2/3/78]
+epoch: 7	iter: 23	Time: 15.987	Data: 0.284	Loss: 0.6305142045021057	Prec@1: tensor([65.3846])	
+
+num_correct: 54	num_samples: 128	Testing accuracy: 42.1875
+Train: [0/3/32]
+epoch: 8	iter: 24	Time: 16.987 (16.987)	Data: 0.364 (0.364)	Loss: 0.6295489072799683 (0.6295489072799683)	Prec@1: tensor([62.5000]) (tensor([62.5000]))	
+Train_summary: [2/3/78]
+epoch: 8	iter: 26	Time: 13.768	Data: 0.334	Loss: 0.6364613771438599	Prec@1: tensor([67.9487])	
+Test: [0/1/21]
+epoch: 9	iter: 27	Time: 10.353 (10.353)	Loss: 0.7106026411056519 (0.7106026411056519)	Prec@1: tensor([47.6190]) (tensor([47.6190]))	
+Test_summary: [0/1/21]
+epoch: 9 iter: 27	BestPrec@1: tensor([67.9487])	Time: 10.353	Loss: 0.7106026411056519	Prec@1: tensor([47.6190])	
+Train: [0/3/32]
+epoch: 9	iter: 27	Time: 27.394 (27.394)	Data: 0.370 (0.370)	Loss: 0.6111785769462585 (0.6111785769462585)	Prec@1: tensor([75.]) (tensor([75.]))	
+Train_summary: [2/3/78]
+epoch: 9	iter: 29	Time: 17.095	Data: 0.309	Loss: 0.601852297782898	Prec@1: tensor([74.3590])	
+
+num_correct: 59	num_samples: 128	Testing accuracy: 46.09375
+Train: [0/3/32]
+epoch: 10	iter: 30	Time: 13.602 (13.602)	Data: 0.215 (0.215)	Loss: 0.5620123147964478 (0.5620123147964478)	Prec@1: tensor([84.3750]) (tensor([84.3750]))	
+Test: [0/1/21]
+epoch: 10	iter: 31	Time: 10.692 (10.692)	Loss: 0.7451668977737427 (0.7451668977737427)	Prec@1: tensor([38.0952]) (tensor([38.0952]))	
+Test_summary: [0/1/21]
+epoch: 10 iter: 31	BestPrec@1: tensor([74.3590])	Time: 10.692	Loss: 0.7451668977737427	Prec@1: tensor([38.0952])	
+Train_summary: [2/3/78]
+epoch: 10	iter: 32	Time: 16.308	Data: 0.262	Loss: 0.58553546667099	Prec@1: tensor([82.0513])	
+Train: [0/3/32]
+epoch: 11	iter: 33	Time: 17.102 (17.102)	Data: 0.400 (0.400)	Loss: 0.5884912610054016 (0.5884912610054016)	Prec@1: tensor([78.1250]) (tensor([78.1250]))	
+Test: [0/1/21]
+epoch: 11	iter: 35	Time: 8.821 (8.821)	Loss: 0.7266528606414795 (0.7266528606414795)	Prec@1: tensor([33.3333]) (tensor([33.3333]))	
+Test_summary: [0/1/21]
+epoch: 11 iter: 35	BestPrec@1: tensor([82.0513])	Time: 8.821	Loss: 0.7266528606414795	Prec@1: tensor([33.3333])	
+Train_summary: [2/3/78]
+epoch: 11	iter: 35	Time: 15.953	Data: 0.315	Loss: 0.5884339213371277	Prec@1: tensor([80.7692])	
+
+num_correct: 69	num_samples: 128	Testing accuracy: 53.90625
+Train: [0/3/32]
+epoch: 12	iter: 36	Time: 13.724 (13.724)	Data: 0.221 (0.221)	Loss: 0.581425666809082 (0.581425666809082)	Prec@1: tensor([81.2500]) (tensor([81.2500]))	
+Train_summary: [2/3/78]
+epoch: 12	iter: 38	Time: 10.486	Data: 0.240	Loss: 0.5693075656890869	Prec@1: tensor([76.9231])	
+Test: [0/1/21]
+epoch: 13	iter: 39	Time: 11.146 (11.146)	Loss: 0.8675263524055481 (0.8675263524055481)	Prec@1: tensor([33.3333]) (tensor([33.3333]))	
+Test_summary: [0/1/21]
+epoch: 13 iter: 39	BestPrec@1: tensor([82.0513])	Time: 11.146	Loss: 0.8675263524055481	Prec@1: tensor([33.3333])	
+Train: [0/3/32]
+epoch: 13	iter: 39	Time: 28.742 (28.742)	Data: 0.259 (0.259)	Loss: 0.6101957559585571 (0.6101957559585571)	Prec@1: tensor([59.3750]) (tensor([59.3750]))	
+Train_summary: [2/3/78]
+epoch: 13	iter: 41	Time: 17.975	Data: 0.265	Loss: 0.6004524230957031	Prec@1: tensor([70.5128])	
+
+num_correct: 65	num_samples: 128	Testing accuracy: 50.78125
+Train: [0/3/32]
+epoch: 14	iter: 42	Time: 17.159 (17.159)	Data: 0.403 (0.403)	Loss: 0.5614968538284302 (0.5614968538284302)	Prec@1: tensor([84.3750]) (tensor([84.3750]))	
+Test: [0/1/21]
+epoch: 14	iter: 43	Time: 10.726 (10.726)	Loss: 0.9093156456947327 (0.9093156456947327)	Prec@1: tensor([33.3333]) (tensor([33.3333]))	
+Test_summary: [0/1/21]
+epoch: 14 iter: 43	BestPrec@1: tensor([82.0513])	Time: 10.726	Loss: 0.9093156456947327	Prec@1: tensor([33.3333])	
+Train_summary: [2/3/78]
+epoch: 14	iter: 44	Time: 17.312	Data: 0.296	Loss: 0.584368109703064	Prec@1: tensor([71.7949])	
+Train: [0/3/32]
+epoch: 15	iter: 45	Time: 16.582 (16.582)	Data: 0.339 (0.339)	Loss: 0.5570375919342041 (0.5570375919342041)	Prec@1: tensor([90.6250]) (tensor([90.6250]))	
+Test: [0/1/21]
+epoch: 15	iter: 47	Time: 11.034 (11.034)	Loss: 0.684959888458252 (0.684959888458252)	Prec@1: tensor([57.1429]) (tensor([57.1429]))	
+Test_summary: [0/1/21]
+epoch: 15 iter: 47	BestPrec@1: tensor([82.0513])	Time: 11.034	Loss: 0.684959888458252	Prec@1: tensor([57.1429])	
+Train_summary: [2/3/78]
+epoch: 15	iter: 47	Time: 17.339	Data: 0.296	Loss: 0.5628085136413574	Prec@1: tensor([82.0513])	
+
+num_correct: 65	num_samples: 128	Testing accuracy: 50.78125
+Train: [0/3/32]
+epoch: 16	iter: 48	Time: 18.353 (18.353)	Data: 0.378 (0.378)	Loss: 0.605888307094574 (0.605888307094574)	Prec@1: tensor([59.3750]) (tensor([59.3750]))	
+Train_summary: [2/3/78]
+epoch: 16	iter: 50	Time: 14.497	Data: 0.381	Loss: 0.5615005493164062	Prec@1: tensor([75.6410])	
+Test: [0/1/21]
+epoch: 17	iter: 51	Time: 9.878 (9.878)	Loss: 0.7875685095787048 (0.7875685095787048)	Prec@1: tensor([33.3333]) (tensor([33.3333]))	
+Test_summary: [0/1/21]
+epoch: 17 iter: 51	BestPrec@1: tensor([82.0513])	Time: 9.878	Loss: 0.7875685095787048	Prec@1: tensor([33.3333])	
+Train: [0/3/32]
+epoch: 17	iter: 51	Time: 27.343 (27.343)	Data: 0.451 (0.451)	Loss: 0.5362080931663513 (0.5362080931663513)	Prec@1: tensor([93.7500]) (tensor([93.7500]))	
+Train_summary: [2/3/78]
+epoch: 17	iter: 53	Time: 14.377	Data: 0.307	Loss: 0.5243365168571472	Prec@1: tensor([93.5897])	
+
+num_correct: 69	num_samples: 128	Testing accuracy: 53.90625
+Train: [0/3/32]
+epoch: 18	iter: 54	Time: 11.323 (11.323)	Data: 0.297 (0.297)	Loss: 0.5203371047973633 (0.5203371047973633)	Prec@1: tensor([96.8750]) (tensor([96.8750]))	
+Test: [0/1/21]
+epoch: 18	iter: 55	Time: 6.832 (6.832)	Loss: 0.7608473300933838 (0.7608473300933838)	Prec@1: tensor([38.0952]) (tensor([38.0952]))	
+Test_summary: [0/1/21]
+epoch: 18 iter: 55	BestPrec@1: tensor([93.5897])	Time: 6.832	Loss: 0.7608473300933838	Prec@1: tensor([38.0952])	
+Train_summary: [2/3/78]
+epoch: 18	iter: 56	Time: 11.235	Data: 0.196	Loss: 0.5254898071289062	Prec@1: tensor([88.4615])	
+Train: [0/3/32]
+epoch: 19	iter: 57	Time: 11.856 (11.856)	Data: 0.309 (0.309)	Loss: 0.4899510145187378 (0.4899510145187378)	Prec@1: tensor([96.8750]) (tensor([96.8750]))	
+Train_summary: [2/3/0]
+epoch: 18	iter: 56	Time: 0.000	Data: 0.439	Loss: 0	Prec@1: 0	
+Train: [0/3/32]
+epoch: 19	iter: 57	Time: 10.600 (10.600)	Data: 0.212 (0.212)	Loss: 0.46380898356437683 (0.46380898356437683)	Prec@1: tensor([93.7500]) (tensor([93.7500]))	
+Test: [0/1/21]
+epoch: 19	iter: 59	Time: 6.601 (6.601)	Loss: 0.6589558124542236 (0.6589558124542236)	Prec@1: tensor([66.6667]) (tensor([66.6667]))	
+Test_summary: [0/1/21]
+epoch: 19 iter: 59	BestPrec@1: tensor([66.6667])	Time: 6.601	Loss: 0.6589558124542236	Prec@1: tensor([66.6667])	
+Train_summary: [2/3/78]
+epoch: 19	iter: 59	Time: 10.793	Data: 0.175	Loss: 0.5098016858100891	Prec@1: tensor([85.8974])	
+
+num_correct: 72	num_samples: 128	Testing accuracy: 56.25
+Train: [0/3/32]
+epoch: 20	iter: 60	Time: 10.747 (10.747)	Data: 0.213 (0.213)	Loss: 0.49343249201774597 (0.49343249201774597)	Prec@1: tensor([93.7500]) (tensor([93.7500]))	
+Train_summary: [2/3/78]
+epoch: 20	iter: 62	Time: 8.638	Data: 0.176	Loss: 0.5069807767868042	Prec@1: tensor([87.1795])	
+Test: [0/1/21]
+epoch: 21	iter: 63	Time: 6.679 (6.679)	Loss: 0.7101967930793762 (0.7101967930793762)	Prec@1: tensor([33.3333]) (tensor([33.3333]))	
+Test_summary: [0/1/21]
+epoch: 21 iter: 63	BestPrec@1: tensor([87.1795])	Time: 6.679	Loss: 0.7101967930793762	Prec@1: tensor([33.3333])	
+Train: [0/3/32]
+epoch: 21	iter: 63	Time: 17.412 (17.412)	Data: 0.198 (0.198)	Loss: 0.49613717198371887 (0.49613717198371887)	Prec@1: tensor([81.2500]) (tensor([81.2500]))	
+Train_summary: [2/3/78]
+epoch: 21	iter: 65	Time: 10.838	Data: 0.163	Loss: 0.5282815098762512	Prec@1: tensor([75.6410])	
+
+num_correct: 59	num_samples: 128	Testing accuracy: 46.09375
+Train: [0/3/32]
+epoch: 22	iter: 66	Time: 16.976 (16.976)	Data: 0.363 (0.363)	Loss: 0.5287046432495117 (0.5287046432495117)	Prec@1: tensor([71.8750]) (tensor([71.8750]))	
+Test: [0/1/21]
+epoch: 22	iter: 67	Time: 10.290 (10.290)	Loss: 0.6796318292617798 (0.6796318292617798)	Prec@1: tensor([66.6667]) (tensor([66.6667]))	
+Test_summary: [0/1/21]
+epoch: 22 iter: 67	BestPrec@1: tensor([87.1795])	Time: 10.290	Loss: 0.6796318292617798	Prec@1: tensor([66.6667])	
+Train_summary: [2/3/78]
+epoch: 22	iter: 68	Time: 16.925	Data: 0.296	Loss: 0.5044497847557068	Prec@1: tensor([83.3333])	
+Train: [0/3/32]
+epoch: 23	iter: 69	Time: 15.693 (15.693)	Data: 0.346 (0.346)	Loss: 0.4597637355327606 (0.4597637355327606)	Prec@1: tensor([93.7500]) (tensor([93.7500]))	
+Test: [0/1/21]
+epoch: 23	iter: 71	Time: 10.468 (10.468)	Loss: 0.7883923053741455 (0.7883923053741455)	Prec@1: tensor([33.3333]) (tensor([33.3333]))	
+Test_summary: [0/1/21]
+epoch: 23 iter: 71	BestPrec@1: tensor([87.1795])	Time: 10.468	Loss: 0.7883923053741455	Prec@1: tensor([33.3333])	
+Train_summary: [2/3/78]
+epoch: 23	iter: 71	Time: 16.340	Data: 0.283	Loss: 0.48278379440307617	Prec@1: tensor([87.1795])	
+
+num_correct: 70	num_samples: 128	Testing accuracy: 54.6875
+Train: [0/3/32]
+epoch: 24	iter: 72	Time: 17.392 (17.392)	Data: 0.358 (0.358)	Loss: 0.4956389367580414 (0.4956389367580414)	Prec@1: tensor([90.6250]) (tensor([90.6250]))	
+Train_summary: [2/3/78]
+epoch: 24	iter: 74	Time: 14.012	Data: 0.294	Loss: 0.515874981880188	Prec@1: tensor([83.3333])	
+Test: [0/1/21]
+epoch: 25	iter: 75	Time: 10.663 (10.663)	Loss: 1.1076167821884155 (1.1076167821884155)	Prec@1: tensor([33.3333]) (tensor([33.3333]))	
+Test_summary: [0/1/21]
+epoch: 25 iter: 75	BestPrec@1: tensor([87.1795])	Time: 10.663	Loss: 1.1076167821884155	Prec@1: tensor([33.3333])	
+Train: [0/3/32]
+epoch: 25	iter: 75	Time: 28.600 (28.600)	Data: 0.343 (0.343)	Loss: 0.5162259340286255 (0.5162259340286255)	Prec@1: tensor([84.3750]) (tensor([84.3750]))	
+Train_summary: [2/3/78]
+epoch: 25	iter: 77	Time: 17.112	Data: 0.355	Loss: 0.49912282824516296	Prec@1: tensor([83.3333])	
+
+num_correct: 57	num_samples: 128	Testing accuracy: 44.53125

@@ -174,8 +174,8 @@ class Trainer(object):
                     print(log_str)
                     self.print_log(log_str)
 
-        self.writer.add_scalar("validation loss", losses.avg, global_step=self.step_val)
-        self.writer.add_scalar("training accuracy", top.avg, global_step=self.step_val)
+        self.writer.add_scalar("validation loss", losses.avg, global_step=self.epoch)
+        self.writer.add_scalar("validation accuracy", top.avg, global_step=self.epoch)
         self.step_val = self.step_val+1
         if self.cmd == 'train':
             is_best = top.avg > self.best_top
@@ -232,7 +232,7 @@ class Trainer(object):
         self.model.train()
         self.optim.zero_grad()
 
-        checkpoint_interval = len(self.train_loader)//4
+        checkpoint_interval = len(self.train_loader)#//4
 
         end = time.time()
         if self.dataset == "fiw":
@@ -247,8 +247,8 @@ class Trainer(object):
                     continue  # for resuming
                 self.iteration = iteration
 
-                if (self.iteration + 1) % self.interval_validate == 0:    
-                    self.validate()
+                # if (self.iteration + 1) % self.interval_validate == 0:    
+                #     self.validate()
 
                 if self.cuda:
                     imgs1, imgs2, target = imgs1.cuda(), imgs2.cuda(), target.cuda(non_blocking=True)
@@ -338,8 +338,8 @@ class Trainer(object):
                     continue  # for resuming
                 self.iteration = iteration
 
-                if (self.iteration + 1) % self.interval_validate == 0:
-                    self.validate()
+                # if (self.iteration + 1) % self.interval_validate == 0:
+                #     self.validate()
 
                 if self.cuda:
                     imgs1, imgs2, target = imgs1.cuda(), imgs2.cuda(), target.cuda(non_blocking=True)
@@ -428,8 +428,8 @@ class Trainer(object):
                     batch_time=batch_time, data_time=data_time, loss=losses, top=top)
         print(log_str)
         self.print_log(log_str)
-        self.writer.add_scalar("training loss", losses.avg, global_step=self.step)
-        self.writer.add_scalar("training accuracy", top.avg, global_step=self.step)
+        self.writer.add_scalar("training loss", losses.avg, global_step=self.epoch)
+        self.writer.add_scalar("training accuracy", top.avg, global_step=self.epoch)
         self.step = self.step + 1
 
     def test(self):
@@ -455,7 +455,7 @@ class Trainer(object):
         s = f"\nnum_correct: {num_correct}\tnum_samples: {num_samples}\tTesting accuracy: {acc}"
         print(s)
         self.print_log(s)
-        self.writer.add_scalar("testing accuracy", acc, self.step_test)
+        self.writer.add_scalar("testing accuracy", acc, self.epoch)
         self.step_test = self.step_test + 1
 
     def train(self):
@@ -465,7 +465,8 @@ class Trainer(object):
         for epoch in tqdm.trange(self.epoch, max_epoch, desc='Train', ncols=80):
             self.epoch = epoch
             self.train_epoch()
-            if self.epoch+1 % 2 == 0:
+            self.validate()
+            if (self.epoch+1) % 2 == 0:
                 self.test()
             if self.iteration >= self.max_iter:
                 break

@@ -54,8 +54,11 @@ class fcNet(nn.Module):
             # self.dens2 = nn.Linear(in_features=self.in_features[0], out_features=self.in_features[1])
             # self.dens3 = nn.Linear(in_features=self.in_features[1], out_features=self.in_features[2])
             # self.dens4 = torch.nn.Linear(in_features=self.in_features[-1], out_features=num_classes)
+            # self.dens1 = nn.Linear(self.in_features[0]*2, 512)
+            # self.dens2 = nn.Linear(512, 32)
+            # self.dens3 = nn.Linear(32, num_classes)
         else:
-            n_layers = self.trial.suggest_int("n_layers", 0, 3)
+            n_layers = self.trial.suggest_int("n_layers", 0, 2)
             self.in_features = self.in_features[0]*2
             for i in range(n_layers):
                 self.out_features = self.trial.suggest_int("n_units_l{}".format(i), 2, 9)
@@ -80,6 +83,8 @@ class fcNet(nn.Module):
             # x = self.dens2(x)
             # x = F.relu(x)
             # x = F.dropout(x, p=0.25, training=self.training)
+
+            # x = self.dens3(x)
             
             # x = self.dens3(x)
             # x = F.relu(x)
