@@ -4,6 +4,7 @@ import os
 import shutil
 import gc
 import time
+import torch.nn.functional as F
 
 import numpy as np
 import torch
@@ -15,13 +16,15 @@ from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data import RandomSampler, BatchSampler
 from torch.utils.data import DataLoader
 
+threshold=0.3
+
 class Trainer(object):
 
     def __init__(self, arch_type, dataset, dataset_type, cmd, cuda, model, criterion, optimizer,
                  train_loader, val_loader, test_data, log_file, max_iter,
                  checkpoint_dir, checkpoint_file, tb_dir,
                  interval_validate=None, lr_scheduler=None,
-                 print_freq=1):
+                 print_freq=1, loss_fn="classification"):
         """
         :param cuda:
         :param model:
@@ -52,6 +55,7 @@ class Trainer(object):
         self.dataset = dataset
         self.dataset_type = dataset_type
         self.arch_type = arch_type 
+        self.loss_fn = loss_fn
 
         self.timestamp_start = datetime.datetime.now()
 
@@ -102,14 +106,24 @@ class Trainer(object):
                 imgs2 = Variable(imgs2)
                 target = Variable(target)
                 with torch.no_grad():
-                    output = self.model(imgs1, imgs2)
-                    loss = self.criterion(output, target)
+                    if self.loss_fn != "contrastive":
+                        output = self.model(imgs1, imgs2)
+                        loss = self.criterion(output, target)
+                    else:
+                        output1, output2 = self.model(imgs1,imgs2)
+                        dist = F.pairwise_distance(output1, output2)
+                        dist = dist < threshold
+                        dist.type(torch.float32)
+                        loss = self.criterion(output1, output2, target)
 
                 if np.isnan(float(loss.data)):
                     raise ValueError('loss is nan while validating')
 
                 # measure accuracy and record loss
-                prec = utils.accuracy(output.data, target.data)
+                if self.loss_fn != "contrastive":
+                    prec = utils.accuracy(output.data, target.data)
+                else:
+                    prec = utils.accuracy(dist.data, target.data)
                 losses.update(loss.data, imgs1.size(0))
                 top.update(prec[0], imgs1.size(0))
 
@@ -232,7 +246,7 @@ class Trainer(object):
         self.model.train()
         self.optim.zero_grad()
 
-        checkpoint_interval = len(self.train_loader)#//4
+        checkpoint_interval = len(self.train_loader)//8
 
         end = time.time()
         if self.dataset == "fiw":
@@ -254,13 +268,23 @@ class Trainer(object):
                     imgs1, imgs2, target = imgs1.cuda(), imgs2.cuda(), target.cuda(non_blocking=True)
                 imgs1, imgs2, target = Variable(imgs1), Variable(imgs2), Variable(target)
 
-                output = self.model(imgs1, imgs2)
-                loss = self.criterion(output, target)
+                if self.loss_fn != "contrastive":
+                    output = self.model(imgs1, imgs2)
+                    loss = self.criterion(output, target)
+                else:
+                    output1, output2 = self.model(imgs1, imgs2)
+                    dist = F.pairwise_distance(output1, output2)
+                    dist = dist < threshold
+                    dist.type(torch.float32)
+                    loss = self.criterion(output1, output2, target)
                 if np.isnan(float(loss.data)):
                     raise ValueError('loss is nan while training')
 
                 # measure accuracy and record loss
-                prec = utils.accuracy(output.data, target.data)
+                if self.loss_fn != "contrastive":
+                    prec = utils.accuracy(output.data, target.data)
+                else:
+                    prec = utils.accuracy(dist.data, target.data)
                 losses.update(loss.data, imgs1.size(0))
                 top.update(prec[0], imgs1.size(0))
 
@@ -385,7 +409,7 @@ class Trainer(object):
                 if self.lr_scheduler is not None:
                     self.lr_scheduler.step()  # update lr
 
-                if (batch_idx+1) % checkpoint_interval == 0:
+                if (batch_idx+1) % checkpoint_interval == 0 or (batch_idx+1)==len(self.train_loader):
                     is_best = top.avg > self.best_top
                     self.best_top = max(top.avg, self.best_top)
 
@@ -439,7 +463,7 @@ class Trainer(object):
         self.model.eval()
         with torch.no_grad():
             for batch_idx, (imgs1, imgs2,target) in enumerate(
-                DataLoader(self.test_data, sampler=RandomSampler(self.test_data, replacement=True, num_samples=128), batch_size=16, drop_last=True)):
+                DataLoader(self.test_data, sampler=RandomSampler(self.test_data, replacement=True, num_samples=500), batch_size=32, drop_last=True)):
                 target = target.view(-1).long()
                 if self.cuda:
                     imgs1 = imgs1.cuda()
@@ -462,6 +486,18 @@ class Trainer(object):
         #max_epoch = int(math.ceil(1. * self.max_iter / len(self.train_loader))) # 117
         max_epoch = 100
         self.writer = SummaryWriter(self.tb_dir)
+        if self.iteration > ((self.epoch+1)*len(self.train_loader)-1):
+            pass
+        elif self.iteration == ((self.epoch+1)*len(self.train_loader)-1):
+            self.validate()
+            if (self.epoch+1) % 2 == 0:
+                self.test()
+        else:
+            self.train_epoch()
+            self.validate()
+            if (self.epoch+1) % 2 == 0:
+                self.test()
+
         for epoch in tqdm.trange(self.epoch, max_epoch, desc='Train', ncols=80):
             self.epoch = epoch
             self.train_epoch()

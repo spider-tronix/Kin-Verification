@@ -5,9 +5,12 @@ import numpy as np
 from torch.autograd import Variable
 import random
 import optuna
+import torch.nn.functional as F
+
+threshold = 0.3
 
 class performance(object):
-    def __init__(self, model, optim, cuda, criterion, loader, val_loader, batch_size, num_epochs=10, lr_scheduler=None, operation="subset", trial=None):
+    def __init__(self, model, optim, cuda, criterion, loader, val_loader, batch_size, num_epochs=10, lr_scheduler=None, operation="subset", trial=None, loss_fn="contrastive"):
         self.model = model
         self.optim = optim
         self.cuda = cuda
@@ -19,6 +22,7 @@ class performance(object):
         self.num_epochs = num_epochs
         self.operation = operation
         self.val_loader = val_loader
+        self.loss_fn = loss_fn
 
         if self.operation == "single":
             self.check_single()
@@ -78,13 +82,24 @@ class performance(object):
                     imgs1, imgs2, target = imgs1.cuda(), imgs2.cuda(), target.cuda(non_blocking=True)
                 imgs1, imgs2, target = Variable(imgs1), Variable(imgs2), Variable(target)
 
-                output = self.model(imgs1, imgs2)
-                loss = self.criterion(output, target)
+                if self.loss_fn != "contrastive":
+                    output = self.model(imgs1, imgs2)
+                    loss = self.criterion(output, target)
+                else:
+                    output1, output2 = self.model(imgs1, imgs2)
+                    dist = F.pairwise_distance(output1, output2)
+                    dist = dist < threshold
+                    loss = self.criterion(output1, output2, target)
                 if np.isnan(float(loss.data)):
                     raise ValueError('loss is nan while training')
 
-                _, prediction = output.max(1)
-                num_correct = (prediction == target).sum()
+                if self.loss_fn != "contrastive":
+                    _, prediction = output.max(1)
+                    num_correct = (prediction == target).sum()
+                else:
+                    prediction = dist
+                    target = target == 1
+                    num_correct = (prediction == target).sum()
                 acc = float(num_correct)/float(self.batch_size)*100
                 n_batches = n_batches + 1
 
@@ -135,13 +150,25 @@ class performance(object):
                 imgs1, imgs2, target = imgs1.cuda(), imgs2.cuda(), target.cuda(non_blocking=True)
             imgs1, imgs2, target = Variable(imgs1), Variable(imgs2), Variable(target)
 
-            output = self.model(imgs1, imgs2)
-            loss = self.criterion(output, target)
+            
+            if self.loss_fn != "contrastive":
+                output = self.model(imgs1, imgs2)
+                loss = self.criterion(output, target)
+            else:
+                output1, output2 = self.model(imgs1, imgs2)
+                dist = F.pairwise_distance(output1, output2)
+                dist = dist < threshold
+                loss = self.criterion(output1, output2, target)
             if np.isnan(float(loss.data)):
                 raise ValueError('loss is nan while training')
 
-            _, prediction = output.max(1)
-            num_correct = (prediction == target).sum()
+            if self.loss_fn != "contrastive":
+                _, prediction = output.max(1)
+                num_correct = (prediction == target).sum()
+            else:
+                prediction = dist
+                target = target == 1
+                num_correct = (prediction == target).sum()
             acc = float(num_correct)/float(self.batch_size)*100
             n_batches = n_batches + 1
             #print(prediction, target, num_correct)

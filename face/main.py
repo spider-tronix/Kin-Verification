@@ -1,5 +1,7 @@
 # python main.py -wd E:\Prem\spiderRD\kaggleFIW -wts E:\Prem\spiderRD\senet50_scratch_weight.pkl -r no -testfn test_labels.csv -trainfn train_labels.csv --arch_type senet50_scratch#
 # python main.py -wd E:\Prem\spiderRD\kaggleFIW -r no -testfn test_labels.csv -trainfn train_annotations.csv --arch_type resnet50 -dt imagenet#
+# python main.py -wd E:\Prem\spiderRD\kaggleFIW -wts E:\Prem\spiderRD\resnet50_scratch_weight.pkl -r no -testfn test_labels.csv -trainfn train_labels.csv --arch_type resnet50_scratch --check_training subset #
+# python main.py -wd E:\Prem\spiderRD\kaggleFIW -r no -testfn test_labels.csv -trainfn train_annotations.csv --arch_type resnet50 -dt imagenet --check_training tuning --loss_fn classification #
 import os
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
 import torch
@@ -26,11 +28,12 @@ import random
 # for hyperparameter tuning
 import optuna
 from optuna.trial import TrialState
+from losses import ContrastiveLoss
 
 # global variables
 num_classes = 2
-start_fid = "F0300"
-end_fid = "F0500"
+start_fid = "F0600"
+end_fid = "F0800"
 img_size = 224
 N_IDENTITY = 8631
 
@@ -42,7 +45,7 @@ configurations = {
         momentum=0.74,
         beta1=0.9,
         beta2=0.999,
-        weight_decay=0.0,
+        weight_decay=0.01,
         gamma=0.1, # "lr_policy: step"
         step_size=75000, # "lr_policy: step"
         interval_validate=2000,
@@ -63,9 +66,9 @@ parser.add_argument('-bs', '--batch_size', type=int, default=32, help='batch siz
 parser.add_argument('-testfn', '--testfilename', default="test_labels.csv", help="specify the label filename for test")
 parser.add_argument('-trainfn', '--trainfilename', default="train_labels.csv", help="specify the label filename for train")
 parser.add_argument('-w', '--workers', default=2, type=int, metavar='N',help='number of data loading workers (default: 4)')
-parser.add_argument('--arch_type', type=str, default='resnet50_scratch', help='model type',choices=['resnet50_scratch', 'senet50_scratch', 'resnet50', 'vgg16', 'densenet161'])
+parser.add_argument('--arch_type', type=str, default='resnet50_scratch', help='model type',choices=['resnet50_scratch', 'senet50_scratch', 'resnet50', 'vgg16', 'densenet121'])
 parser.add_argument('--check_training', help='run model with a single data point',choices=['single', 'subset', 'tuning'])
-
+parser.add_argument('--loss_fn', help='classification loss or contrastive loss or metric loss', choices=["classification", "contrastive", "metric"], default="classification")
 
 def set_seed(seed):
     """
@@ -159,6 +162,7 @@ def objective(trial):
         batch_size=args.batch_size,
         num_epochs=10,
         operation=args.check_training,
+        loss_fn = args.loss_fn,
         trial=trial
     )
 
@@ -213,17 +217,17 @@ if __name__ == "__main__":
 
     if args.check_training is not None:
         random.seed(10)
-        l1 = random.sample(range(len(train_data)), int(0.001*len(train_data)))
+        l1 = random.sample(range(len(train_data)), int(0.01*len(train_data)))
         train_subset = Subset(train_data, l1)
         if args.dataset == "fiw":
             random.seed(20)
-            l2 = random.sample(range(1,len(val_data)), int(0.001*len(val_data)))
+            l2 = random.sample(range(1,len(val_data)), int(0.01*len(val_data)))
             val_subset = Subset(val_data, l2)
             
         train_loader = DataLoader(train_subset, batch_size=args.batch_size, shuffle=True, **kwargs)
         if val_data:
             #val_loader = DataLoader(val_subset, batch_size=args.batch_size, shuffle=False, **kwargs)
-            val_loader = DataLoader(val_subset, batch_size=len(l2), shuffle=False, **kwargs)
+            val_loader = DataLoader(val_subset, batch_size=args.batch_size, shuffle=False, **kwargs)
 
     else:
         random.seed(10)
@@ -236,8 +240,8 @@ if __name__ == "__main__":
             
         train_loader = DataLoader(train_subset, batch_size=args.batch_size, shuffle=True, **kwargs)
         if val_data:
-            #val_loader = DataLoader(val_subset, batch_size=args.batch_size, shuffle=False, **kwargs)
-            val_loader = DataLoader(val_subset, batch_size=len(l2), shuffle=False, **kwargs)
+            val_loader = DataLoader(val_subset, batch_size=args.batch_size, shuffle=False, **kwargs)
+            #val_loader = DataLoader(val_subset, batch_size=len(l2), shuffle=False, **kwargs)
         # train_loader = DataLoader(train_data, batch_size=args.batch_size, shuffle=True, **kwargs)
 
         # if val_data:
@@ -287,7 +291,7 @@ if __name__ == "__main__":
     #other models
     else:
         pretrained = True if args.dataset_type == "imagenet" else False
-        model = MyNet(arch=args.arch_type, pretrained=pretrained)
+        model = MyNet(arch=args.arch_type, pretrained=pretrained, loss_fn=args.loss_fn)
         model.apply(weights_initialize)
 
     # training setting
@@ -317,8 +321,11 @@ if __name__ == "__main__":
         model = model.cuda()
 
     # criterion
-    criterion = nn.CrossEntropyLoss()
-    #criterion = nn.BCEWithLogitsLoss()
+    if args.loss_fn != "contrastive":
+        criterion = nn.CrossEntropyLoss()
+    else:
+        criterion = ContrastiveLoss()
+    
     if torch.cuda.is_available():
         criterion = criterion.cuda()
 
@@ -358,8 +365,8 @@ if __name__ == "__main__":
     # sys.exit()
 
     # train the model
+    print(model.fnet)
     tb_dir = os.path.join("runs", args.dataset_type, args.arch_type)
-
     if args.check_training is not None and args.check_training != "tuning":
         p = performance(
             model=model,
@@ -371,6 +378,7 @@ if __name__ == "__main__":
             batch_size=args.batch_size,
             num_epochs=100,
             operation=args.check_training,
+            loss_fn=args.loss_fn,
             lr_scheduler=lr_scheduler
         )
         # check_subset(model, optim, torch.cuda.is_available(), criterion, train_loader, args.batch_size, lr_scheduler)
@@ -392,9 +400,10 @@ if __name__ == "__main__":
         max_iter=cfg['max_iteration'],
         checkpoint_dir=args.checkpoint_dir,
         checkpoint_file = checkpoint_file,
-        print_freq=3,#500,
+        print_freq=500,
         interval_validate = 4,#cfg["interval_validate"],
         tb_dir = tb_dir,
+        loss_fn = args.loss_fn
     )
     trainer.epoch = start_epoch
     trainer.iteration = start_iteration
