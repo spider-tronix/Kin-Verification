@@ -313,8 +313,8 @@ if __name__ == "__main__":
 
         start_epoch = checkpoint['epoch']
         start_iteration = checkpoint['iteration']
-        if args.dataset_type == "vggface2":
-            assert checkpoint['arch'] == args.arch_type
+        # if args.dataset_type == "vggface2":
+        #     assert checkpoint['arch'] == args.arch_type
         print("Resume from epoch: {}, iteration: {}".format(start_epoch, start_iteration))
 
     if torch.cuda.is_available():
